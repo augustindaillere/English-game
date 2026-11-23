@@ -1,0 +1,58 @@
+name: CI/CD
+
+# PR to main -> checks only
+# Push to main -> checks THEN deployment to the VPS (same method as crazydev)
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROD_URL: http://augustin-daillere.angers.mds-project.fr
+
+jobs:
+  checks:
+    name: Build and check the site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install qrcode
+      - run: python3 build.py --base-url "$PROD_URL"
+      - run: python3 tests/check_site.py
+
+  deploy-prod:
+    name: Deploy to production
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: ${{ env.PROD_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH key setup
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Deploy on the VPS
+        run: ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" 'bash -s' -- main /opt/english-game < scripts/deploy.sh
+      - name: Check that the site responds
+        run: |
+          for i in $(seq 1 12); do
+            curl -fsS -o /dev/null "$PROD_URL/" && echo "Site online" && exit 0
+            sleep 5
+          done
+          exit 1

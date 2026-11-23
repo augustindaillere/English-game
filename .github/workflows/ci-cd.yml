@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROD_URL: http://augustin-daillere.angers.mds-project.fr
+  PROD_URL: https://vps123926.serveur-vps.net
 
 jobs:
   checks:

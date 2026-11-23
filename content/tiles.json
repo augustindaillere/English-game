@@ -1,0 +1,924 @@
+[
+  {
+    "id": "reuse-recycle",
+    "tile": 3,
+    "type": "good",
+    "effect": "Go to tile 6",
+    "title": "Reuse, recycle",
+    "board": "Buying refurbished avoids making a brand-new device.",
+    "intro": "The greenest device is the one that already exists. Before recycling, the best options are to reuse: buy refurbished, sell or donate what you no longer use.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "facts": [
+          {
+            "text": "Most of the environmental footprint of a digital device comes from its manufacturing (mining of metals, production of components, transport), not from its use. Buying refurbished avoids most of that impact.",
+            "check": false
+          },
+          {
+            "text": "ADEME studies estimate that a refurbished smartphone has a much lower environmental impact than a new one (often cited as several times lower).",
+            "check": true
+          },
+          {
+            "text": "The UN Global E-waste Monitor 2024 reports that 62 million tonnes of e-waste were generated in 2022 worldwide, and only 22.3% was documented as properly collected and recycled.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "The right order: reduce, reuse, recycle",
+        "list": [
+          "Reduce: do I really need a new device?",
+          "Reuse: buy refurbished, give or sell your old devices that still work.",
+          "Recycle: when a device is really dead, bring it to a collection point or back to the shop. Never put it in the regular trash."
+        ]
+      },
+      {
+        "heading": "Bonus for your wallet",
+        "text": "Refurbished devices are checked, repaired and cleaned by professionals, usually sold with a warranty, and much cheaper than new ones."
+      }
+    ],
+    "related": [
+      "product-lifetime",
+      "e-waste"
+    ],
+    "sources": [
+      {
+        "label": "ADEME (French Agency for Ecological Transition)",
+        "url": "https://www.ademe.fr/"
+      },
+      {
+        "label": "ADEME, Impact CO2",
+        "url": "https://impactco2.fr/"
+      },
+      {
+        "label": "ITU & UNITAR, The Global E-waste Monitor 2024",
+        "url": "https://ewastemonitor.info/the-global-e-waste-monitor-2024/"
+      }
+    ]
+  },
+  {
+    "id": "product-lifetime",
+    "tile": 5,
+    "type": "good",
+    "effect": "Double your move",
+    "title": "Product lifetime",
+    "board": "Repairing your PC makes it last: fewer devices thrown away.",
+    "intro": "Keeping devices longer is the most effective way to reduce the environmental impact of IT, because it spreads the impact of manufacturing over more years.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "facts": [
+          {
+            "text": "Extending the life of a device from 2 to 4 years roughly halves the yearly impact of its manufacturing.",
+            "check": false
+          },
+          {
+            "text": "For a smartphone, manufacturing represents the large majority (often cited around 75 to 80%) of its total carbon footprint over its life.",
+            "check": true
+          },
+          {
+            "text": "In France, planned obsolescence has been an offence since 2015, and the repairability index (a score out of 10 shown on electronic products) has existed since 2021.",
+            "check": false
+          },
+          {
+            "text": "The EU adopted a \"right to repair\" directive in 2024 (Directive (EU) 2024/1799) to make repair easier and cheaper.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Replace a battery, a screen or add memory rather than changing the whole device.",
+          "Go to a Repair Café or a local repair shop, or use guides like iFixit.",
+          "Check the repairability index before buying.",
+          "Use a case and a screen protector."
+        ]
+      }
+    ],
+    "related": [
+      "reuse-recycle",
+      "moores-law"
+    ],
+    "sources": [
+      {
+        "label": "EUR-Lex, Directive (EU) 2024/1799 on common rules promoting the repair of goods",
+        "url": "https://eur-lex.europa.eu/eli/dir/2024/1799/oj"
+      },
+      {
+        "label": "French Ministry of Ecology, Repairability index",
+        "url": "https://www.ecologie.gouv.fr/politiques-publiques/indice-reparabilite"
+      },
+      {
+        "label": "Arcep & ADEME, Environmental footprint of digital technology in France",
+        "url": "https://www.arcep.fr/la-regulation/grands-dossiers-thematiques-transverses/lempreinte-environnementale-du-numerique.html"
+      },
+      {
+        "label": "French Ministry of Ecology, AGEC anti-waste law",
+        "url": "https://www.ecologie.gouv.fr/politiques-publiques/loi-anti-gaspillage-economie-circulaire-agec"
+      }
+    ]
+  },
+  {
+    "id": "wasted-energy",
+    "tile": 9,
+    "type": "bad",
+    "effect": "Miss 1 turn",
+    "title": "Wasted energy",
+    "board": "On standby, your TV keeps using electricity for nothing.",
+    "intro": "Many devices keep consuming electricity even when nobody uses them: TVs, internet boxes, TV decoders, game consoles, chargers left plugged in.",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "text": "An internet box or a TV decoder can consume almost as much in standby as when it is in use, because it stays connected all the time. Over a year and across millions of homes, this is a lot of wasted electricity."
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Use a power strip with a switch and turn it off at night or when you leave.",
+          "Turn off the Wi-Fi of your box when you do not need it.",
+          "Unplug chargers when not in use."
+        ]
+      }
+    ],
+    "related": [
+      "green-energy",
+      "greenhouse-gas-emissions"
+    ],
+    "sources": [
+      {
+        "label": "ADEME (French Agency for Ecological Transition)",
+        "url": "https://www.ademe.fr/"
+      }
+    ]
+  },
+  {
+    "id": "cut-down",
+    "tile": 11,
+    "type": "good",
+    "effect": "Double your move",
+    "title": "Cut down on",
+    "board": "Deleting old emails frees up space on servers.",
+    "intro": "\"The cloud\" is not in the sky: it is physical servers and hard drives in datacenters. Cutting down on what you store and send means less hardware to build, power and cool.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "text": "Data stored forever (old emails, newsletters, duplicated photos, videos) needs storage hardware that has to be manufactured and powered, and each file is usually copied several times for safety. Individually the impact is small, but multiplied by billions of users it adds up. Cutting down also means sending less: fewer attachments, fewer people in copy."
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Unsubscribe from newsletters you never read.",
+          "Delete old emails, especially those with big attachments.",
+          "Delete duplicate photos and videos, and turn off automatic backup of everything.",
+          "Share a link instead of sending a heavy attachment."
+        ]
+      }
+    ],
+    "related": [
+      "digital-carbon-footprint",
+      "pue"
+    ],
+    "sources": [
+      {
+        "label": "ADEME, Impact CO2",
+        "url": "https://impactco2.fr/"
+      }
+    ]
+  },
+  {
+    "id": "sustainable-web-design",
+    "tile": 13,
+    "type": "good",
+    "effect": "1st turn: 6 = here",
+    "title": "Sustainable web design",
+    "board": "A light website loads fast and uses less energy.",
+    "intro": "Sustainable web design (or eco-design) means taking the environmental impact into account from the very beginning of a website or app: only useful features, light pages, compatibility with old devices.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "facts": [
+          {
+            "text": "According to the HTTP Archive Web Almanac, the median web page weighs over 2 MB, many times more than a decade ago. Heavy pages need more data transfer, more server resources and more powerful devices.",
+            "check": true
+          },
+          {
+            "text": "In France, the RGESN (General Policy for the Eco-design of Digital Services), published in 2024 by Arcom, Arcep, ADEME and DINUM, lists criteria to eco-design websites and apps.",
+            "check": false
+          },
+          {
+            "text": "The GreenIT.fr collective publishes a list of 115 best practices for eco-designing websites.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "Good practices",
+        "list": [
+          "Compressed images in modern formats (WebP, AVIF) and the right size.",
+          "Few or no external scripts and trackers.",
+          "System fonts instead of downloaded fonts.",
+          "Static pages when no database is needed.",
+          "Hosting powered by renewable energy.",
+          "Remove features nobody uses, avoid autoplay videos and infinite scroll."
+        ]
+      },
+      {
+        "heading": "Measure it",
+        "list": [
+          "EcoIndex: gives a website a grade from A to G based on page weight, complexity and number of requests.",
+          "Website Carbon Calculator: estimates the CO2 produced each time a page is visited.",
+          "Impact CO2 (ADEME): compares the carbon footprint of everyday actions and devices.",
+          "The Green Web Foundation: checks whether a website is hosted with green energy."
+        ]
+      },
+      {
+        "heading": "This website",
+        "text": "This website tries to follow these rules: static pages, no tracker, no JavaScript, no downloaded font."
+      }
+    ],
+    "related": [
+      "green-coding",
+      "digital-carbon-footprint"
+    ],
+    "sources": [
+      {
+        "label": "RGESN, General Policy for the Eco-design of Digital Services",
+        "url": "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/"
+      },
+      {
+        "label": "Collectif Conception Numérique Responsable (GreenIT.fr), 115 best practices",
+        "url": "https://collectif.greenit.fr/"
+      },
+      {
+        "label": "GreenIT.fr",
+        "url": "https://www.greenit.fr/"
+      },
+      {
+        "label": "HTTP Archive, Web Almanac 2024: Page Weight",
+        "url": "https://almanac.httparchive.org/en/2024/page-weight"
+      },
+      {
+        "label": "EcoIndex",
+        "url": "https://www.ecoindex.fr/"
+      },
+      {
+        "label": "Website Carbon Calculator",
+        "url": "https://www.websitecarbon.com/"
+      },
+      {
+        "label": "ADEME, Impact CO2",
+        "url": "https://impactco2.fr/"
+      },
+      {
+        "label": "The Green Web Foundation",
+        "url": "https://www.thegreenwebfoundation.org/"
+      }
+    ]
+  },
+  {
+    "id": "digital-carbon-footprint",
+    "tile": 15,
+    "type": "bad",
+    "effect": "Back to tile 6",
+    "title": "Digital carbon footprint",
+    "board": "A heavy email sent to 1,000 people is stored 1,000 times.",
+    "intro": "Every digital action has a carbon footprint: the devices we use, the networks that carry the data and the datacenters that store it all need materials and energy.",
+    "sections": [
+      {
+        "heading": "What is it?",
+        "text": "The carbon footprint is the total amount of greenhouse gases emitted by an activity, expressed in CO2 equivalent (CO2e). For digital technology, it includes the manufacturing of devices, networks and servers, the electricity they use, and their end of life."
+      },
+      {
+        "heading": "Key figures",
+        "facts": [
+          {
+            "text": "The Shift Project estimated that digital technology accounts for around 3.5 to 4% of global greenhouse gas emissions, a share growing fast.",
+            "check": true
+          },
+          {
+            "text": "In France, studies by ADEME and Arcep show that devices (and above all their manufacturing) are the largest part of the footprint of digital technology.",
+            "check": true
+          },
+          {
+            "text": "When you send an email with an attachment to 1,000 people, the file is stored in 1,000 mailboxes, often on several servers each, sometimes for years.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Share a link to a file instead of attaching it.",
+          "Compress attachments and only send to people who need them.",
+          "Keep your devices longer: it is the biggest lever."
+        ]
+      }
+    ],
+    "related": [
+      "cut-down",
+      "greenhouse-gas-emissions",
+      "product-lifetime"
+    ],
+    "sources": [
+      {
+        "label": "The Shift Project (2019), Lean ICT: towards digital sobriety",
+        "url": "https://theshiftproject.org/en/article/lean-ict-our-new-report/"
+      },
+      {
+        "label": "Arcep & ADEME, Environmental footprint of digital technology in France",
+        "url": "https://www.arcep.fr/la-regulation/grands-dossiers-thematiques-transverses/lempreinte-environnementale-du-numerique.html"
+      },
+      {
+        "label": "French Ministry of Ecology, AGEC anti-waste law",
+        "url": "https://www.ecologie.gouv.fr/politiques-publiques/loi-anti-gaspillage-economie-circulaire-agec"
+      },
+      {
+        "label": "French Ministry of Ecology, Repairability index",
+        "url": "https://www.ecologie.gouv.fr/politiques-publiques/indice-reparabilite"
+      },
+      {
+        "label": "ADEME, Impact CO2",
+        "url": "https://impactco2.fr/"
+      }
+    ]
+  },
+  {
+    "id": "green-coding",
+    "tile": 17,
+    "type": "good",
+    "effect": "Double your move",
+    "title": "Green coding",
+    "board": "Simple code makes the computer work less.",
+    "intro": "Green coding means writing software that needs fewer resources: less computing power, less memory, less data transfer. Efficient software runs well on older devices and uses less energy.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "text": "Code that does useless work (endless loops, loading data that is never shown, heavy libraries for a small feature) makes processors, servers and networks work for nothing. Multiplied by millions of users, small optimisations save a lot of energy. Light software also avoids software obsolescence: old computers stay usable, so they are not replaced."
+      },
+      {
+        "heading": "Good practices for developers",
+        "list": [
+          "Keep it simple: only code the features that are really needed.",
+          "Avoid heavy libraries and frameworks when a few lines are enough.",
+          "Load and process only the data you need (pagination, caching).",
+          "Choose efficient algorithms and avoid useless requests to the server.",
+          "Test your software on old devices and slow connections."
+        ]
+      },
+      {
+        "heading": "Light software for old computers",
+        "text": "An old computer that is too slow with a recent operating system can often run perfectly well with a lightweight Linux distribution. Open-source software usually supports old hardware for longer, and anyone can maintain it."
+      }
+    ],
+    "related": [
+      "sustainable-web-design",
+      "moores-law"
+    ],
+    "sources": [
+      {
+        "label": "RGESN, General Policy for the Eco-design of Digital Services",
+        "url": "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/"
+      },
+      {
+        "label": "Collectif Conception Numérique Responsable (GreenIT.fr), 115 best practices",
+        "url": "https://collectif.greenit.fr/"
+      },
+      {
+        "label": "GreenIT.fr",
+        "url": "https://www.greenit.fr/"
+      }
+    ]
+  },
+  {
+    "id": "pue",
+    "tile": 20,
+    "type": "bad",
+    "effect": "Back to tile 14",
+    "title": "PUE (Power Usage Effectiveness)",
+    "board": "A badly designed data center wastes energy on cooling.",
+    "intro": "Every email, video, cloud file and AI request is processed in a datacenter: a building full of servers that must be powered and cooled all day, every day. The PUE measures how much energy is wasted around the servers.",
+    "sections": [
+      {
+        "heading": "What is the PUE?",
+        "text": "PUE = total energy used by the datacenter / energy used by the IT equipment (servers, storage, network). A perfect datacenter would have a PUE of 1.0: all the energy would go to computing. A PUE of 2.0 means that for every 1 kWh used by servers, another 1 kWh is spent on cooling, lighting and power losses."
+      },
+      {
+        "heading": "Key figures",
+        "facts": [
+          {
+            "text": "The global average PUE is around 1.5 to 1.6, while the most efficient datacenters reach about 1.1.",
+            "check": true
+          },
+          {
+            "text": "According to the IEA, datacenters consumed around 415 TWh of electricity in 2024, about 1.5% of global electricity consumption, and this could more than double by 2030, mainly because of AI.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "How to improve it?",
+        "list": [
+          "Low PUE: efficient cooling (outside air, free cooling) so less energy is wasted. The best datacenters reach a PUE close to 1.1.",
+          "Renewable electricity: solar, wind, hydro.",
+          "Heat reuse: the heat produced by servers can warm homes, swimming pools or offices.",
+          "Longer server lifespan and recycling of equipment."
+        ]
+      }
+    ],
+    "related": [
+      "virtualization",
+      "green-energy",
+      "generative-ai"
+    ],
+    "sources": [
+      {
+        "label": "IEA (2025), Energy and AI",
+        "url": "https://www.iea.org/reports/energy-and-ai"
+      },
+      {
+        "label": "Uptime Institute, Global Data Center Survey 2024",
+        "url": "https://uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024"
+      },
+      {
+        "label": "Power Usage Effectiveness (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Power_usage_effectiveness"
+      },
+      {
+        "label": "Google, Data center efficiency",
+        "url": "https://datacenters.google/efficiency/"
+      },
+      {
+        "label": "The Green Web Foundation",
+        "url": "https://www.thegreenwebfoundation.org/"
+      }
+    ]
+  },
+  {
+    "id": "virtualization",
+    "tile": 22,
+    "type": "good",
+    "effect": "Double your move",
+    "title": "Virtualization",
+    "board": "One server can replace several: less hardware.",
+    "intro": "Virtualization lets one physical server run several \"virtual machines\" (or containers), each behaving like a separate computer.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "text": "Many physical servers are used only a small part of the time, but they consume energy and needed materials to be built. By grouping several services on one well-used machine (consolidation), we need fewer servers, less electricity, less cooling and less space. Cloud computing relies heavily on this technique."
+      },
+      {
+        "heading": "Limits",
+        "text": "Virtualization only helps if it really reduces the number of machines. Creating many virtual machines that are never used, or keeping them running for nothing, wastes resources too."
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Turn off virtual machines and test servers you do not use.",
+          "Size servers according to real needs.",
+          "Share infrastructure rather than buying one server per project."
+        ]
+      }
+    ],
+    "related": [
+      "pue",
+      "cut-down"
+    ],
+    "sources": [
+      {
+        "label": "Virtualization (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Virtualization"
+      },
+      {
+        "label": "IEA (2025), Energy and AI",
+        "url": "https://www.iea.org/reports/energy-and-ai"
+      }
+    ]
+  },
+  {
+    "id": "moores-law",
+    "tile": 25,
+    "type": "bad",
+    "effect": "Stuck until a 6",
+    "title": "Moore's law",
+    "board": "Replacing a PC just for more power creates waste.",
+    "intro": "Moore's law is an observation made by Gordon Moore, co-founder of Intel: the number of transistors on a chip doubles regularly, so computers keep getting more powerful.",
+    "sections": [
+      {
+        "heading": "What is it?",
+        "facts": [
+          {
+            "text": "In 1965, Gordon Moore predicted that the number of components on a chip would double every year. In 1975 he revised it to every two years. This trend held for decades and is now slowing down as transistors approach physical limits.",
+            "check": false
+          },
+          {
+            "text": "A related trend, Koomey's law, showed that the number of computations per unit of energy also doubled roughly every 1.5 years for decades.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "Why is it on a bad practice tile?",
+        "text": "Chips get more efficient, but this race for power pushes us to replace devices that still work, just to have a faster one. Software also gets heavier and heavier, making older computers feel slow (software obsolescence). The result: more manufacturing and more e-waste. This is linked to the rebound effect: efficiency gains lead to more consumption."
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Ask yourself if you really need more power.",
+          "Upgrade (more memory, an SSD) rather than replace.",
+          "Use lighter software on older computers."
+        ]
+      }
+    ],
+    "related": [
+      "product-lifetime",
+      "rebound-effect",
+      "green-coding"
+    ],
+    "sources": [
+      {
+        "label": "Intel, Moore's Law",
+        "url": "https://www.intel.com/content/www/us/en/newsroom/resources/moores-law.html"
+      },
+      {
+        "label": "Koomey et al. (2011), Implications of Historical Trends in the Electrical Efficiency of Computing, IEEE Annals",
+        "url": "https://doi.org/10.1109/MAHC.2010.28"
+      },
+      {
+        "label": "Moore's law (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Moore%27s_law"
+      },
+      {
+        "label": "Jevons paradox (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Jevons_paradox"
+      },
+      {
+        "label": "The Shift Project (2019), Lean ICT: towards digital sobriety",
+        "url": "https://theshiftproject.org/en/article/lean-ict-our-new-report/"
+      }
+    ]
+  },
+  {
+    "id": "green-energy",
+    "tile": 27,
+    "type": "good",
+    "effect": "Double your move",
+    "title": "Green energy",
+    "board": "A host powered by sun or wind pollutes less.",
+    "intro": "Websites, apps and clouds run on servers that consume electricity day and night. Choosing a host powered by renewable energy greatly reduces the emissions of that electricity.",
+    "sections": [
+      {
+        "heading": "Why is it a good practice?",
+        "text": "Solar, wind and hydro power emit very little CO2 when producing electricity, unlike coal or gas. A host (the company that stores your website) that buys or produces renewable electricity reduces the footprint of all the websites it hosts. Some datacenters also reuse the heat of their servers to warm homes or swimming pools."
+      },
+      {
+        "heading": "Regulation",
+        "facts": [
+          {
+            "text": "The EU Energy Efficiency Directive (2023) requires large datacenters to report their energy performance, including energy use, PUE, water and heat reuse.",
+            "check": true
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Check if a website is hosted with green energy with The Green Web Foundation tool.",
+          "Choose a green host for your own projects.",
+          "Remember that the cleanest energy is the energy you do not use."
+        ]
+      }
+    ],
+    "related": [
+      "greenhouse-gas-emissions",
+      "pue",
+      "net-zero"
+    ],
+    "sources": [
+      {
+        "label": "Google, Data center efficiency",
+        "url": "https://datacenters.google/efficiency/"
+      },
+      {
+        "label": "Power Usage Effectiveness (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Power_usage_effectiveness"
+      },
+      {
+        "label": "The Green Web Foundation",
+        "url": "https://www.thegreenwebfoundation.org/"
+      }
+    ]
+  },
+  {
+    "id": "greenhouse-gas-emissions",
+    "tile": 28,
+    "type": "bad",
+    "effect": "Back to start",
+    "title": "Greenhouse gas emissions",
+    "board": "Coal-powered electricity releases a lot of CO2.",
+    "intro": "Greenhouse gases (carbon dioxide CO2, methane, nitrous oxide...) trap heat in the atmosphere and cause climate change. Burning fossil fuels like coal to produce electricity is one of the main sources.",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "facts": [
+          {
+            "text": "The carbon intensity of electricity depends on how it is produced. According to the IPCC, coal power emits around 820 g of CO2e per kWh over its life cycle, gas around 490 g, while wind, nuclear, hydro and solar emit a few dozen grams or less.",
+            "check": true
+          },
+          {
+            "text": "This means the same server or datacenter can emit many times more CO2 depending on the country and energy where it runs. France's electricity, mostly nuclear and hydro, is among the least carbon-intensive in Europe.",
+            "check": true
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Prefer services hosted in regions with low-carbon electricity.",
+          "Reduce your energy use: switch off devices, avoid standby.",
+          "Look at live carbon intensity maps such as Electricity Maps."
+        ]
+      }
+    ],
+    "related": [
+      "green-energy",
+      "wasted-energy",
+      "net-zero"
+    ],
+    "sources": [
+      {
+        "label": "IPCC (2014), AR5 WGIII Annex III: life-cycle emissions of electricity technologies",
+        "url": "https://www.ipcc.ch/report/ar5/wg3/"
+      },
+      {
+        "label": "Electricity Maps (live carbon intensity)",
+        "url": "https://app.electricitymaps.com/"
+      },
+      {
+        "label": "IEA (2025), Energy and AI",
+        "url": "https://www.iea.org/reports/energy-and-ai"
+      }
+    ]
+  },
+  {
+    "id": "net-zero",
+    "tile": 30,
+    "type": "finish",
+    "effect": "Exact roll only",
+    "title": "Net zero",
+    "board": "Land exactly on this tile to win.",
+    "intro": "Net zero is the goal of the whole game, and of the planet: reaching a balance between the greenhouse gases we emit and those we remove from the atmosphere.",
+    "sections": [
+      {
+        "heading": "What is it?",
+        "facts": [
+          {
+            "text": "The Paris Agreement (2015) aims to limit global warming to well below 2°C, and to pursue efforts to limit it to 1.5°C.",
+            "check": false
+          },
+          {
+            "text": "According to the IPCC, limiting warming to 1.5°C requires reaching net zero CO2 emissions around 2050.",
+            "check": true
+          },
+          {
+            "text": "The EU has a legally binding goal of climate neutrality by 2050 (European Climate Law), and France has the same goal in its national strategy.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "And digital technology?",
+        "text": "The digital sector must also reduce its emissions. Reaching net zero is first about reducing emissions (fewer and longer-lasting devices, efficient software, green energy), and only then compensating what cannot be avoided. Every good practice on the board brings you closer to this tile!"
+      }
+    ],
+    "related": [
+      "greenhouse-gas-emissions",
+      "green-energy",
+      "product-lifetime"
+    ],
+    "sources": [
+      {
+        "label": "United Nations, The Paris Agreement",
+        "url": "https://www.un.org/en/climatechange/paris-agreement"
+      },
+      {
+        "label": "IPCC (2018), Special Report: Global Warming of 1.5°C",
+        "url": "https://www.ipcc.ch/sr15/"
+      },
+      {
+        "label": "European Commission, European Climate Law",
+        "url": "https://climate.ec.europa.eu/eu-action/european-climate-law_en"
+      }
+    ]
+  },
+  {
+    "id": "hd-streaming",
+    "type": "bad",
+    "title": "HD streaming everywhere",
+    "board": null,
+    "intro": "Online video is the biggest part of internet traffic. Higher quality means more data, more network capacity and more servers.",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "facts": [
+          {
+            "text": "Video streaming represents the majority of global internet traffic (over 60% according to several network studies).",
+            "check": true
+          },
+          {
+            "text": "In 2019, The Shift Project estimated that online video produced about 300 million tonnes of CO2 per year, about 1% of global emissions. This estimate was later debated: the IEA found that the impact of one hour of streaming is much lower than first reported. The exact number is uncertain, but more data still means more infrastructure.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Lower the video quality when you do not need HD, especially on a small screen.",
+          "Turn off autoplay.",
+          "Use Wi-Fi rather than mobile data.",
+          "Listen to music without the video."
+        ]
+      }
+    ],
+    "related": [
+      "cut-down"
+    ],
+    "sources": [
+      {
+        "label": "The Shift Project (2019), Climate crisis: the unsustainable use of online video",
+        "url": "https://theshiftproject.org/en/article/unsustainable-use-online-video/"
+      },
+      {
+        "label": "IEA (2020), The carbon footprint of streaming video: fact-checking the headlines",
+        "url": "https://www.iea.org/commentaries/the-carbon-footprint-of-streaming"
+      }
+    ],
+    "tile": null,
+    "effect": null
+  },
+  {
+    "id": "generative-ai",
+    "type": "bad",
+    "title": "AI for everything",
+    "board": null,
+    "intro": "Generative AI (chatbots, image generators) relies on very large models trained and run on powerful servers in datacenters.",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "facts": [
+          {
+            "text": "Training a large AI model requires huge amounts of computing power, and using it (inference) also consumes energy for every request.",
+            "check": false
+          },
+          {
+            "text": "The IEA identifies AI as the main driver of the growth of datacenter electricity demand until 2030.",
+            "check": false
+          },
+          {
+            "text": "Estimates of the energy used by a single AI request vary a lot between studies and models; it is generally higher than a classic web search.",
+            "check": true
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Use AI when it is really useful, not for simple questions a search or a calculator can answer.",
+          "Avoid generating many images or videos just for fun.",
+          "Prefer smaller tools when they are enough."
+        ]
+      }
+    ],
+    "related": [
+      "pue"
+    ],
+    "sources": [
+      {
+        "label": "IEA (2025), Energy and AI",
+        "url": "https://www.iea.org/reports/energy-and-ai"
+      }
+    ],
+    "tile": null,
+    "effect": null
+  },
+  {
+    "id": "crypto-mining",
+    "type": "bad",
+    "title": "Proof-of-work crypto mining",
+    "board": null,
+    "intro": "Some cryptocurrencies, like Bitcoin, use a system called \"proof of work\": computers compete to solve puzzles, which consumes a lot of electricity on purpose.",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "facts": [
+          {
+            "text": "The Cambridge Bitcoin Electricity Consumption Index estimates Bitcoin's yearly electricity use at well over 100 TWh, comparable to a medium-sized country.",
+            "check": true
+          },
+          {
+            "text": "Mining machines become obsolete quickly, creating electronic waste.",
+            "check": false
+          },
+          {
+            "text": "Ethereum switched from proof of work to proof of stake in 2022 (\"The Merge\") and reduced its energy consumption by about 99.95%, showing that other designs are possible.",
+            "check": false
+          }
+        ]
+      }
+    ],
+    "related": [
+      "green-energy"
+    ],
+    "sources": [
+      {
+        "label": "Cambridge Centre for Alternative Finance, Bitcoin Electricity Consumption Index",
+        "url": "https://ccaf.io/cbnsi/cbeci"
+      },
+      {
+        "label": "ethereum.org, The Merge",
+        "url": "https://ethereum.org/en/roadmap/merge/"
+      }
+    ],
+    "tile": null,
+    "effect": null
+  },
+  {
+    "id": "e-waste",
+    "type": "bad",
+    "title": "E-waste in a drawer (or in the trash)",
+    "board": null,
+    "intro": "Electronic waste (e-waste) is everything with a plug or a battery that we throw away: phones, laptops, chargers, screens...",
+    "sections": [
+      {
+        "heading": "Why is it a bad practice?",
+        "facts": [
+          {
+            "text": "The UN Global E-waste Monitor 2024 reports that 62 million tonnes of e-waste were generated in 2022 worldwide.",
+            "check": false
+          },
+          {
+            "text": "Only 22.3% of it was documented as properly collected and recycled.",
+            "check": false
+          },
+          {
+            "text": "E-waste can contain toxic substances (lead, mercury) and valuable metals that are lost when it is not recycled.",
+            "check": false
+          }
+        ]
+      },
+      {
+        "heading": "What can you do?",
+        "list": [
+          "Never throw electronics in the regular trash.",
+          "Bring old devices to a collection point or back to the shop.",
+          "Sell or donate devices that still work."
+        ]
+      }
+    ],
+    "related": [
+      "reuse-recycle"
+    ],
+    "sources": [
+      {
+        "label": "ITU & UNITAR, The Global E-waste Monitor 2024",
+        "url": "https://ewastemonitor.info/the-global-e-waste-monitor-2024/"
+      }
+    ],
+    "tile": null,
+    "effect": null
+  },
+  {
+    "id": "rebound-effect",
+    "type": "bad",
+    "title": "The rebound effect",
+    "board": null,
+    "intro": "The rebound effect (also called the Jevons paradox) happens when efficiency gains lead to more consumption, cancelling part or all of the savings.",
+    "sections": [
+      {
+        "heading": "What is it?",
+        "text": "In 1865, economist William Stanley Jevons noticed that more efficient steam engines did not reduce coal consumption: coal became cheaper to use, so people used more of it. The same happens in IT: computers and networks become more efficient every year, but we use them for more and more things (more devices, more video, more AI), so the total energy keeps growing."
+      },
+      {
+        "heading": "Example",
+        "text": "Video compression became more efficient, so platforms offered HD and then 4K. The data per video went up instead of down."
+      }
+    ],
+    "related": [
+      "moores-law"
+    ],
+    "sources": [
+      {
+        "label": "Jevons paradox (Wikipedia)",
+        "url": "https://en.wikipedia.org/wiki/Jevons_paradox"
+      },
+      {
+        "label": "The Shift Project (2019), Lean ICT: towards digital sobriety",
+        "url": "https://theshiftproject.org/en/article/lean-ict-our-new-report/"
+      }
+    ],
+    "tile": null,
+    "effect": null
+  }
+]

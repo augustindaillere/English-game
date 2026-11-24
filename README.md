@@ -21,7 +21,6 @@ Python 3 suffit (aucune bibliothèque nécessaire, sauf pour les QR codes).
 python3 build.py                                   # génère dist/
 pip install qrcode                                  # une seule fois, pour les QR codes
 python3 build.py --base-url https://VOTRE-URL/greenflag   # + QR codes dans dist/qr/ et dist/print.html
-python3 build.py --base-url https://VOTRE-URL/greenflag --hide-checks   # version finale sans les étiquettes "to verify"
 ```
 
 `dist/print.html` est une page imprimable avec, pour chaque case du plateau, le texte court du plateau et son QR code.
@@ -38,7 +37,6 @@ Dans `content/tiles.json`, chaque case a :
 - `board` : la phrase courte imprimée sur le plateau
 - `intro`, `sections` (avec `text`, `facts` ou `list`), `related`, `sources`
 - `definition` : la définition seule, texte possible pour les cartes de la phase 2 (ne doit pas contenir le mot)
-- `"check": true` sur un chiffre = à vérifier (affiche une étiquette jaune "to verify")
 
 Puis relancer `python3 build.py`.
 
@@ -74,7 +72,6 @@ Revenir à crazydev : `cd /opt/english-game && docker compose down && cd /opt/cr
 
 ## À faire avant la version finale
 
-- Vérifier les chiffres marqués "to verify" et tous les liens des sources (ils n'ont pas pu être testés pendant la rédaction).
 - Ajouter les sources de votre recherche "green IT et eco design".
 - Appliquer la maquette : commencer par les variables en haut de `assets/style.css`.
 

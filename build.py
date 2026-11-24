@@ -5,7 +5,6 @@ Usage:
     python3 build.py                                  # build the site into dist/
     python3 build.py --base-url https://example.org/greenflag
                                                       # also generate QR codes + printable sheet
-    python3 build.py --hide-checks                    # hide the "to verify" tags (final version)
 
 Content lives in content/tiles.json. Styles live in assets/style.css.
 Only the Python standard library is needed, except for QR codes (pip install qrcode).
@@ -78,8 +77,7 @@ def render_section(s):
     if "facts" in s:
         out.append('<ul class="facts">')
         for f in s["facts"]:
-            tag = ' <span class="check" title="Figure to double-check before final version">to verify</span>' if f.get("check") else ""
-            out.append(f"<li>{e(f['text'])}{tag}</li>")
+            out.append(f"<li>{e(f['text'])}</li>")
         out.append("</ul>")
     if "list" in s:
         out.append("<ul>" + "".join(f"<li>{e(i)}</li>" for i in s["list"]) + "</ul>")
@@ -230,7 +228,6 @@ RULES = """
 <li><strong>1st turn: 6 = here</strong> (tile 13): if you roll a 6 on your very first turn, go directly to tile 13.</li>
 <li><strong>Exact roll only</strong> (tile 30): you must land exactly on tile 30 to win.</li>
 </ul>
-<p class="check-note"><span class="check">to verify</span> Rule interpretations to confirm with the game designers: does "Double your move" mean moving the rolled number once more? If the roll is too high on the last tiles, does the player stay put or bounce back?</p>
 </section>
 <section class="block">
 <h2>End of the game</h2>
@@ -290,9 +287,8 @@ def build_qr(tiles, base_url, show_checks):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", help="Public URL of the site, used for QR codes")
-    ap.add_argument("--hide-checks", action="store_true", help='Hide "to verify" tags')
     args = ap.parse_args()
-    show = not args.hide_checks
+    show = False
 
     tiles = json.loads((ROOT / "content" / "tiles.json").read_text(encoding="utf-8"))
     by_id = {t["id"]: t for t in tiles}

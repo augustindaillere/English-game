@@ -19,11 +19,16 @@ for t in tiles:
     for r in t.get("related", []):
         if r not in ids:
             errors.append(f"{t['id']}: unknown related tile {r}")
+    if t.get("tile") and not t.get("definition"):
+        errors.append(f"{t['id']}: board tile without a Hard level definition")
+    if t.get("definition") and t["title"].lower() in t["definition"].lower():
+        errors.append(f"{t['id']}: the Hard level definition gives the answer away")
 
 for page in DIST.rglob("*.html"):
     for href in re.findall(r'(?:href|src)="([^"#]+)"', page.read_text(encoding="utf-8")):
         if href.startswith(("http://", "https://", "mailto:")):
             continue
+        href = href.split("?")[0]
         if not (page.parent / href).resolve().exists():
             errors.append(f"{page.relative_to(DIST)}: broken link {href}")
 

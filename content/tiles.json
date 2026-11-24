@@ -6,6 +6,15 @@
     "effect": "Go to tile 6",
     "title": "Reuse, recycle",
     "board": "Buying refurbished avoids making a brand-new device.",
+    "definition": "Giving a device a second life (buying refurbished, donating, selling) and, at the very end, recovering its materials.",
+    "answers": [
+      "reuse recycle",
+      "reuse and recycle",
+      "reuse",
+      "recycle",
+      "recycling",
+      "reuse and recycling"
+    ],
     "intro": "The greenest device is the one that already exists. Before recycling, the best options are to reuse: buy refurbished, sell or donate what you no longer use.",
     "sections": [
       {
@@ -64,6 +73,15 @@
     "effect": "Double your move",
     "title": "Product lifetime",
     "board": "Repairing your PC makes it last: fewer devices thrown away.",
+    "definition": "How long a device is used before it is replaced: repairing it makes this period longer.",
+    "answers": [
+      "product lifetime",
+      "lifetime",
+      "product life",
+      "lifespan",
+      "product lifespan",
+      "life span"
+    ],
     "intro": "Keeping devices longer is the most effective way to reduce the environmental impact of IT, because it spreads the impact of manufacturing over more years.",
     "sections": [
       {
@@ -127,6 +145,13 @@
     "effect": "Miss 1 turn",
     "title": "Wasted energy",
     "board": "On standby, your TV keeps using electricity for nothing.",
+    "definition": "Electricity used for nothing, for example by devices left on standby.",
+    "answers": [
+      "wasted energy",
+      "energy waste",
+      "waste of energy",
+      "energy wasted"
+    ],
     "intro": "Many devices keep consuming electricity even when nobody uses them: TVs, internet boxes, TV decoders, game consoles, chargers left plugged in.",
     "sections": [
       {
@@ -160,6 +185,12 @@
     "effect": "Double your move",
     "title": "Cut down on",
     "board": "Deleting old emails frees up space on servers.",
+    "definition": "To use less of something, for example by deleting old emails and files stored on servers.",
+    "answers": [
+      "cut down on",
+      "cut down",
+      "reduce"
+    ],
     "intro": "\"The cloud\" is not in the sky: it is physical servers and hard drives in datacenters. Cutting down on what you store and send means less hardware to build, power and cool.",
     "sections": [
       {
@@ -194,6 +225,15 @@
     "effect": "1st turn: 6 = here",
     "title": "Sustainable web design",
     "board": "A light website loads fast and uses less energy.",
+    "definition": "Creating light and simple websites that load fast and use less data and energy.",
+    "answers": [
+      "sustainable web design",
+      "eco design",
+      "ecodesign",
+      "web eco design",
+      "green web design",
+      "sustainable design"
+    ],
     "intro": "Sustainable web design (or eco-design) means taking the environmental impact into account from the very beginning of a website or app: only useful features, light pages, compatibility with old devices.",
     "sections": [
       {
@@ -284,6 +324,13 @@
     "effect": "Back to tile 6",
     "title": "Digital carbon footprint",
     "board": "A heavy email sent to 1,000 people is stored 1,000 times.",
+    "definition": "The total amount of greenhouse gases caused by making and using digital devices and services.",
+    "answers": [
+      "digital carbon footprint",
+      "carbon footprint",
+      "digital footprint",
+      "digital carbon impact"
+    ],
     "intro": "Every digital action has a carbon footprint: the devices we use, the networks that carry the data and the datacenters that store it all need materials and energy.",
     "sections": [
       {
@@ -351,6 +398,14 @@
     "effect": "Double your move",
     "title": "Green coding",
     "board": "Simple code makes the computer work less.",
+    "definition": "Writing simple, efficient software that makes computers work less and use less energy.",
+    "answers": [
+      "green coding",
+      "green code",
+      "eco coding",
+      "sustainable coding",
+      "green programming"
+    ],
     "intro": "Green coding means writing software that needs fewer resources: less computing power, less memory, less data transfer. Efficient software runs well on older devices and uses less energy.",
     "sections": [
       {
@@ -398,6 +453,11 @@
     "effect": "Back to tile 14",
     "title": "PUE (Power Usage Effectiveness)",
     "board": "A badly designed data center wastes energy on cooling.",
+    "definition": "A data center indicator: total energy used divided by the energy used by the IT equipment only.",
+    "answers": [
+      "pue",
+      "power usage effectiveness"
+    ],
     "intro": "Every email, video, cloud file and AI request is processed in a datacenter: a building full of servers that must be powered and cooled all day, every day. The PUE measures how much energy is wasted around the servers.",
     "sections": [
       {
@@ -462,6 +522,13 @@
     "effect": "Double your move",
     "title": "Virtualization",
     "board": "One server can replace several: less hardware.",
+    "definition": "Running several virtual servers on one physical machine to need less hardware.",
+    "answers": [
+      "virtualization",
+      "virtualisation",
+      "virtual machines",
+      "virtual machine"
+    ],
     "intro": "Virtualization lets one physical server run several \"virtual machines\" (or containers), each behaving like a separate computer.",
     "sections": [
       {
@@ -503,6 +570,12 @@
     "effect": "Stuck until a 6",
     "title": "Moore's law",
     "board": "Replacing a PC just for more power creates waste.",
+    "definition": "The observation that the number of transistors on a chip doubles about every two years.",
+    "answers": [
+      "moores law",
+      "moore law",
+      "law of moore"
+    ],
     "intro": "Moore's law is an observation made by Gordon Moore, co-founder of Intel: the number of transistors on a chip doubles regularly, so computers keep getting more powerful.",
     "sections": [
       {
@@ -566,6 +639,15 @@
     "effect": "Double your move",
     "title": "Green energy",
     "board": "A host powered by sun or wind pollutes less.",
+    "definition": "Electricity produced from renewable sources such as the sun, the wind or water.",
+    "answers": [
+      "green energy",
+      "renewable energy",
+      "renewable energies",
+      "clean energy",
+      "renewables",
+      "green energies"
+    ],
     "intro": "Websites, apps and clouds run on servers that consume electricity day and night. Choosing a host powered by renewable energy greatly reduces the emissions of that electricity.",
     "sections": [
       {
@@ -617,6 +699,16 @@
     "effect": "Back to start",
     "title": "Greenhouse gas emissions",
     "board": "Coal-powered electricity releases a lot of CO2.",
+    "definition": "Gases such as CO2 released into the air that trap heat and cause global warming.",
+    "answers": [
+      "greenhouse gas emissions",
+      "greenhouse gas",
+      "greenhouse gases",
+      "greenhouse gases emissions",
+      "ghg",
+      "ghg emissions",
+      "greenhouse emissions"
+    ],
     "intro": "Greenhouse gases (carbon dioxide CO2, methane, nitrous oxide...) trap heat in the atmosphere and cause climate change. Burning fossil fuels like coal to produce electricity is one of the main sources.",
     "sections": [
       {
@@ -668,6 +760,13 @@
     "effect": "Exact roll only",
     "title": "Net zero",
     "board": "Land exactly on this tile to win.",
+    "definition": "Balancing the greenhouse gases we emit with the ones we remove from the air, so the total is zero.",
+    "answers": [
+      "net zero",
+      "carbon neutrality",
+      "carbon neutral",
+      "zero net"
+    ],
     "intro": "Net zero is the goal of the whole game, and of the planet: reaching a balance between the greenhouse gases we emit and those we remove from the atmosphere.",
     "sections": [
       {

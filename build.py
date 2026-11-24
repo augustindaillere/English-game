@@ -11,7 +11,6 @@ Content lives in content/tiles.json. Styles live in assets/style.css.
 Only the Python standard library is needed, except for QR codes (pip install qrcode).
 """
 import argparse
-import hashlib
 import html
 import json
 import shutil
@@ -20,19 +19,6 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 DIST = ROOT / "dist"
 SITE_NAME = "GreenFlag"
-GAME = json.loads((ROOT / "content" / "game.json").read_text(encoding="utf-8"))
-PHASE2 = GAME["phase2"]
-
-
-def asset_version():
-    """Short hash of the assets, added to their URLs so phones never keep an old cached copy."""
-    h = hashlib.sha1()
-    for f in sorted((ROOT / "assets").glob("*")):
-        h.update(f.read_bytes())
-    return h.hexdigest()[:8]
-
-
-VERSION = asset_version()
 
 e = html.escape
 
@@ -48,8 +34,7 @@ def page(title, body, depth=0, show_checks=True):
 <meta name="theme-color" content="#2e9e5b">
 <meta name="description" content="GreenFlag: a board game about Green IT and eco-design. Detailed explanations of every tile.">
 <title>{e(title)} | {SITE_NAME}</title>
-<link rel="stylesheet" href="{prefix}assets/style.css?v={VERSION}">
-<script src="{prefix}assets/phase.js?v={VERSION}"></script>
+<link rel="stylesheet" href="{prefix}assets/style.css">
 <link rel="icon" href="{prefix}assets/Logo-GreenFlag.png" type="image/png">
 </head>
 <body{body_class}>
@@ -70,14 +55,6 @@ def page(title, body, depth=0, show_checks=True):
 </body>
 </html>
 """
-
-
-PHASE_SWITCH = """<div class="phase-switch" role="group" aria-label="Game phase">
-  <span class="phase-prompt">Which phase are you playing?</span>
-  <span class="phase-label">Phase</span>
-  <button type="button" data-set-phase="1">Phase 1</button>
-  <button type="button" data-set-phase="2">Phase 2</button>
-</div>"""
 
 
 TYPE_LABEL = {"good": "Good practice", "bad": "Bad practice", "finish": "Finish"}
@@ -110,50 +87,6 @@ def render_section(s):
     return "\n".join(out)
 
 
-def quiz_html(t):
-    """Phase 2: the definition is shown and the player must type the word."""
-    if not t.get("definition"):
-        return ""
-    answers = [t["title"]] + t.get("answers", [])
-    word = f"<strong>{e(t['title'])}</strong>"
-    effect = t.get("effect", "")
-    effect = effect[:1].lower() + effect[1:]
-
-    def msg(key):
-        return e(PHASE2[key]).replace("{effect}", e(effect))
-
-    if t["type"] == "finish":
-        right = wrong = joker = f'<p class="quiz-effect">{msg("finish")}</p>'
-        joker_btn = ""
-    else:
-        kind = "good" if t["type"] == "good" else "bad"
-        right = f'<p class="quiz-effect">{msg(kind + "_right")}</p>'
-        wrong = f'<p class="quiz-effect">{msg(kind + "_wrong")}</p>'
-        joker = f'<p class="quiz-effect">{msg("joker_" + kind)}</p>'
-        joker_btn = """<div class="joker">
-      <button type="button" class="joker-button">Use the Joker</button>
-      <p class="joker-help">Only for the player who won the Joker in phase 1. It works once per game, even without the word.</p>
-    </div>
-    <p class="joker-gone">The Joker has already been used in this game.</p>"""
-    stake = {"good": "Find the word to get the bonus.", "bad": "Find the word to avoid the penalty."}.get(t["type"], "Find the word.")
-    return f"""<section id="quiz" class="quiz block" data-answers="{e(json.dumps(answers, ensure_ascii=False))}" data-tab-title="{e(tile_label(t))} | {SITE_NAME}">
-    <h2>Phase 2: {stake}</h2>
-    <p class="quiz-def">{e(t['definition'])}</p>
-    <form class="quiz-form" autocomplete="off">
-      <label for="answer">The word</label>
-      <div class="quiz-row">
-        <input id="answer" name="answer" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" required>
-        <button type="submit">Check</button>
-      </div>
-    </form>
-    <div class="quiz-result" tabindex="-1" aria-live="polite" hidden></div>
-    <template class="quiz-right"><p class="quiz-verdict">Correct! The word was {word}.</p>{right}</template>
-    <template class="quiz-wrong"><p class="quiz-verdict">Not quite. The word was {word}.</p>{wrong}</template>
-    <template class="quiz-joker"><p class="quiz-verdict">Joker used! The word was {word}.</p>{joker}</template>
-    {joker_btn}
-  </section>"""
-
-
 def tile_page(t, by_id, show_checks, prev=None, nxt=None):
     related = [by_id[r] for r in t.get("related", []) if r in by_id]
     rel_html = ""
@@ -173,22 +106,16 @@ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
     prev_html = nav_link(prev, "prev", True)
     next_html = nav_link(nxt, "next", False)
     board_html = f'<blockquote class="board-text"><strong>On the board:</strong> {e(t["board"])}</blockquote>' if t.get("board") else ""
-    quiz = quiz_html(t)
-    has_quiz = " has-quiz" if quiz else ""
     body = f"""
-<article class="tile tile-{t['type']}{has_quiz}">
-  {PHASE_SWITCH if quiz else ""}
+<article class="tile tile-{t['type']}">
   <p class="tile-number">{tile_label(t)}</p>
-  <h1 class="tile-reveal">{e(t['title'])}</h1>
+  <h1>{e(t['title'])}</h1>
   {badge(t)}
-  {quiz}
-  <div class="tile-reveal">
   {board_html}
   <p class="intro">{e(t['intro'])}</p>
   {''.join(render_section(s) for s in t['sections'])}
   {rel_html}
   <section class="block sources"><h2>Sources</h2><ol>{sources}</ol></section>
-  </div>
 </article>
 <nav class="tile-nav" aria-label="Tile navigation">
   {prev_html}
@@ -202,13 +129,11 @@ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
 def toc_row(t):
     num = f"{t['tile']:02d}" if t.get("tile") else "+"
     summary = f'<span class="toc-summary">{e(t.get("board") or t["intro"])}</span>'
-    if t.get("definition"):
-        summary += f'<span class="toc-definition">{e(t["definition"])}</span>'
     effect = f'<span class="toc-effect">{e(t["effect"])}</span>' if t.get("effect") else ""
     return f"""<li class="toc-row toc-{t['type']}">
   <a href="tiles/{t['id']}.html">
     <span class="toc-num">{num}</span>
-    <span class="toc-text"><span class="toc-title{" has-def" if t.get("definition") else ""}">{e(t['title'])}</span>{summary}</span>
+    <span class="toc-text"><span class="toc-title">{e(t['title'])}</span>{summary}</span>
     <span class="toc-dots" aria-hidden="true"></span>
     {effect}
   </a>
@@ -222,17 +147,7 @@ def home_page(show_checks):
   <h1>GreenFlag</h1>
   <p class="home-tagline">A board game about Green IT &amp; eco-design.</p>
   <p>Roll the dice, move along 30 tiles and discover the environmental impact of digital technology. Good practices help you move forward, bad practices slow you down. First to reach <strong>Net zero</strong> wins!</p>
-  <h2 class="home-start">Start a game</h2>
-  <div class="levels">
-    <a class="level-card" href="contents.html?phase=1&amp;new=1" data-set-phase="1">
-      <strong>Phase 1: Discovery</strong>
-      <span>Words and definitions are on the board. Do what each tile says and memorize its word.</span>
-    </a>
-    <a class="level-card level-card-hard" href="contents.html?phase=2" data-set-phase="2">
-      <strong>Phase 2: Memory</strong>
-      <span>Board flipped: only definitions. Type the word here to get the bonus or avoid the penalty.</span>
-    </a>
-  </div>
+  <p><a class="button" href="contents.html">Start a game</a></p>
   <p class="home-links"><a href="rules.html">How to play</a> &middot; <a href="about.html">About</a></p>
 </section>
 """
@@ -245,10 +160,7 @@ def index_page(tiles, show_checks):
     body = f"""
 <section class="hero">
   <h1>Contents</h1>
-  {PHASE_SWITCH}
   <p>Landed on a coloured tile? Find its number below (or scan its QR code), check its effect and open it to read the detailed explanation.</p>
-  <p class="phase2-only">Phase 2: open the tile, read the definition and type the word you memorized. Right word: you get the bonus or avoid the penalty.</p>
-  <p class="phase2-only joker-status"><span class="joker-free">Joker: not used yet in this game.</span><span class="joker-spent">Joker: already used in this game. <button type="button" class="link-button" data-reset-joker>New game? Give it back</button></span></p>
   <p class="legend"><span class="badge badge-good">Good practice</span> <span class="badge badge-bad">Bad practice</span> <span class="badge badge-finish">Finish</span></p>
 </section>
 <h2 class="toc-heading">The board, tile by tile</h2>
@@ -267,7 +179,7 @@ RULES = """
 </section>
 <section class="block">
 <h2>Equipment</h2>
-<ul><li>1 double-sided board (30 tiles): words and definitions on one side for phase 1, only definitions on the other side for phase 2</li><li>1 dice</li><li>1 pawn per player (2 to 4 players)</li></ul>
+<ul><li>2 boards of 30 tiles: <strong>Level 1</strong> for the first phase and <strong>Level 2</strong> for the second phase</li><li>Definition cards: a definition on top, the answer (the key word) below</li><li>1 dice</li><li>1 pawn per player (2 to 4 players)</li></ul>
 </section>
 <section class="block">
 <h2>Setup (first 5 minutes)</h2>
@@ -278,37 +190,35 @@ RULES = """
 </ol>
 </section>
 <section class="block">
-<h2>First phase: discovery and memorization</h2>
-<p>When a player lands on a bonus or penalty tile, they must do the action written on that tile. They must also try to memorize the words of these tiles: they will be useful during the second phase.</p>
-</section>
-<section class="block">
-<h2>Transition to the second phase</h2>
-<p>The first player to reach the end of the first phase earns a <strong>Joker</strong> for the second phase. Once the first phase is over, flip the board over to begin the second phase: only the definitions are written on it.</p>
-</section>
-<section class="block">
-<h2>Second phase: memory and strategy</h2>
-<p>When a player lands on a bonus or penalty tile, they scan the tile (or find its number in the Contents) and type the word memorized during the first phase.</p>
-<ul>
-<li><span class="badge badge-bad">Penalty tile</span> Right word: you avoid the penalty. Wrong word: you do the action written on the tile.</li>
-<li><span class="badge badge-good">Bonus tile</span> Right word: you get the advantage written on the tile. Wrong word: you cannot use it.</li>
-<li>One try only. Capital letters, accents and small typos do not matter.</li>
-</ul>
-<p>The goal is to use your memory to avoid penalties and get advantages, so you move faster through the game.</p>
-</section>
-<section class="block">
-<h2>The Joker</h2>
-<p>The Joker can be used once, on a bonus or a penalty tile: it cancels a penalty or activates a bonus, even if you cannot remember the word. On the website, press <strong>Use the Joker</strong> on the tile page (before answering, or just after a wrong answer).</p>
-</section>
-<section class="block">
 <h2>A turn</h2>
 <ol>
 <li>Throw the dice and move your pawn forward by that number of tiles.</li>
 <li>If you land on a coloured tile, read it aloud and apply its effect.</li>
 <li><span class="badge badge-good">Good practice</span> tiles help you (move again, jump forward).</li>
 <li><span class="badge badge-bad">Bad practice</span> tiles slow you down (go back, miss a turn, stay stuck).</li>
-<li>Second phase: scan the tile and type its word before applying the effect (see below).</li>
-<li>Want to know more? Scan the QR code of the tile or find it on this website.</li>
+<li>Want to know more about a tile? Find it on this website.</li>
 </ol>
+</section>
+<section class="block">
+<h2>First phase: discovery and memorization</h2>
+<p>When a player lands on a bonus or penalty tile, they must do the action written on that tile. They must also try to memorize the key words of these tiles: they will be useful during the second phase.</p>
+</section>
+<section class="block">
+<h2>Transition to the second phase</h2>
+<p>The first player to reach the end of the first phase earns a <strong>Joker</strong> for the second phase. Once the first phase is over, take the <strong>Level 2</strong> board to begin the second phase.</p>
+</section>
+<section class="block">
+<h2>Second phase: memory and strategy</h2>
+<p>When a player lands on a bonus or penalty tile, an opponent draws a definition card and reads the definition aloud (not the answer!). The player must say the matching key word memorized during the first phase.</p>
+<ul>
+<li><span class="badge badge-bad">Penalty tile</span> Right word: you avoid the penalty. Wrong word: you do the action written on the tile.</li>
+<li><span class="badge badge-good">Bonus tile</span> Right word: you get the advantage written on the tile. Wrong word: you cannot use it.</li>
+</ul>
+<p>The objective is to use your memory to avoid penalties and gain advantages, so you progress faster through the game.</p>
+</section>
+<section class="block">
+<h2>The Joker</h2>
+<p>The Joker can be used once, on a bonus or a penalty tile: it cancels a penalty or activates a bonus, even if you cannot remember the word.</p>
 </section>
 <section class="block">
 <h2>Special effects</h2>
@@ -347,7 +257,7 @@ ABOUT = """
 </section>
 <section class="block">
 <h2>About this website</h2>
-<p>This site practises what it teaches: static pages, no tracker, no external font, very light. The only JavaScript is a tiny script (a few KB) for the phase 2 quiz and the Joker; everything else works without it.</p>
+<p>This site practises what it teaches: static pages, no tracker, no external font, no JavaScript, very light.</p>
 </section>
 """
 
@@ -370,7 +280,7 @@ def build_qr(tiles, base_url, show_checks):
         img.save(str(qr_dir / f"{n:02d}-{t['id']}.svg"))
         items.append(f"""<li class="print-card card-{t['type']}">
   <img src="qr/{n:02d}-{t['id']}.svg" alt="QR code">
-  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}{'<br><em>Phase 2 side:</em> ' + e(t['definition']) if t.get('definition') else ''}<br><small>{e(url)}</small></div>
+  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}<br><small>{e(url)}</small></div>
 </li>""")
     body = '<h1>Printable tiles with QR codes</h1><p class="no-print">Print this page (Ctrl+P) to get the texts and QR codes for the board and cards.</p><ul class="print-list">' + "".join(items) + "</ul>"
     (DIST / "print.html").write_text(page("Print", body, show_checks=show_checks), encoding="utf-8")

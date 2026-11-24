@@ -119,8 +119,9 @@ def quiz_html(t):
         right = wrong = f'<p class="quiz-effect">{e(HARD["finish"])}</p>'
         order = ""
     else:
-        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(HARD["bonus"])}</p>'
-        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(HARD["malus"])}</p>'
+        # A tile can override the default bonus/malus of content/game.json with its own "bonus"/"malus"
+        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(t.get("bonus") or HARD["bonus"])}</p>'
+        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(t.get("malus") or HARD["malus"])}</p>'
         order = f'<p class="quiz-order">{e(HARD["order"])}</p>'
     word = f"<strong>{e(t['title'])}</strong>"
     return f"""<section id="quiz" class="quiz block" data-answers="{e(json.dumps(answers, ensure_ascii=False))}" data-tab-title="{e(tile_label(t))} | {SITE_NAME}">

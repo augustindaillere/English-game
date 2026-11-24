@@ -50,7 +50,7 @@ Puis relancer `python3 build.py`.
 
 Le niveau se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisé sur le téléphone.
 La comparaison ignore majuscules, accents, ponctuation, espaces, "the/a/an" au début, et tolère une petite faute de frappe.
-Les textes du bonus et du malus se modifient dans `content/game.json`.
+Le bonus et le malus par défaut (+2 / −2 cases) se modifient dans `content/game.json`. Pour une case précise, ajouter `"bonus"` et/ou `"malus"` à cette case dans `content/tiles.json` (ex. `"bonus": "Roll the dice again."`).
 
 ## Mise en ligne (comme crazydev)
 

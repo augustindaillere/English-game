@@ -1,5 +1,5 @@
 {
-  "_comment": "Hard level settings. Change the texts below, then run python3 build.py again.",
+  "_comment": "Hard level settings: default bonus/malus for every tile. A tile can have its own by adding \"bonus\" and/or \"malus\" in content/tiles.json. Then run python3 build.py again.",
   "hard": {
     "bonus": "Move forward 2 tiles.",
     "malus": "Move back 2 tiles.",

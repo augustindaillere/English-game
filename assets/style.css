@@ -143,7 +143,7 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
   h1 { font-size: 1.7rem; }
   .site-header { padding: 6px 14px; gap: 4px; flex-wrap: nowrap; }
   .brand { font-size: 1.05rem; }
-  .brand img { width: 24px; height: 24px; }
+  .brand img { width: 36px; height: 24px; }
   .site-header nav { gap: 12px; font-size: 0.9rem; }
   .site-header { padding: 6px 12px; }
   .block { padding: 14px; margin: 12px 0; border-radius: 10px; }
@@ -152,7 +152,7 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
   .badge { font-size: 0.78rem; }
   .home { margin-top: 4vh; }
   .home h1 { font-size: 2.2rem; }
-  .home-logo { width: 72px; height: 72px; }
+  .home-logo { width: 108px; height: 72px; }
   .button { display: block; padding: 16px; }
   .toc-row a { padding: 12px; gap: 12px; min-height: 56px; }
   .site-footer { padding: 16px; font-size: 0.8rem; }

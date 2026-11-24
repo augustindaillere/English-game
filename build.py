@@ -54,7 +54,7 @@ def page(title, body, depth=0, show_checks=True):
 </head>
 <body{body_class}>
 <header class="site-header">
-  <a class="brand" href="{prefix}index.html"><img src="{prefix}assets/Logo-GreenFlag.png" alt="" width="28" height="28"> {SITE_NAME}</a>
+  <a class="brand" href="{prefix}index.html"><img src="{prefix}assets/Logo-GreenFlag.png" alt="" width="42" height="28"> {SITE_NAME}</a>
   <nav>
     <a href="{prefix}contents.html">Contents</a>
     <a href="{prefix}rules.html">Rules</a>
@@ -218,7 +218,7 @@ def toc_row(t):
 def home_page(show_checks):
     body = """
 <section class="home">
-  <img class="home-logo" src="assets/Logo-GreenFlag.png" alt="" width="96" height="96">
+  <img class="home-logo" src="assets/Logo-GreenFlag.png" alt="" width="144" height="96">
   <h1>GreenFlag</h1>
   <p class="home-tagline">A board game about Green IT &amp; eco-design.</p>
   <p>Roll the dice, move along 30 tiles and discover the environmental impact of digital technology. Good practices help you move forward, bad practices slow you down. First to reach <strong>Net zero</strong> wins!</p>

@@ -157,3 +157,5 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
   .toc-row a { padding: 12px; gap: 12px; min-height: 56px; }
   .site-footer { padding: 16px; font-size: 0.8rem; }
 }
+
+.rules-note { color: var(--muted); font-style: italic; margin-top: 0; }

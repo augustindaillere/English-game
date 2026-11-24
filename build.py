@@ -171,67 +171,63 @@ def index_page(tiles, show_checks):
 
 RULES = """
 <h1>How to play</h1>
+<p class="rules-note">These rules can be modified and adapted.</p>
 <section class="block">
 <h2>Goal</h2>
-<p>Be the first player to reach tile 30, <strong>Net zero</strong>, while learning how to use IT in a more sustainable way.</p>
+<p>Be the first player to land exactly on the final tile, <strong>Net zero</strong> (tile 30), while learning how to use IT in a more sustainable way.</p>
 </section>
 <section class="block">
 <h2>Equipment</h2>
-<ul><li>2 boards of 30 tiles: <strong>Level 1</strong> for the first phase and <strong>Level 2</strong> for the second phase</li><li>Definition cards: a definition on top, the answer (the key word) below</li><li>1 dice</li><li>1 pawn per player (2 to 4 players)</li></ul>
+<ul>
+<li>1 double-sided board of 30 tiles: <strong>Level 1</strong> for the first phase, <strong>Level 2</strong> for the second phase</li>
+<li>Definition cards: a definition, with the answer written under it</li>
+<li>1 dice</li>
+<li>1 pawn per player, each of a different shape or color</li>
+</ul>
 </section>
 <section class="block">
-<h2>Setup (first 5 minutes)</h2>
-<ol>
-<li>Read the rules together. Remember: this is a serious game, you are here to learn!</li>
-<li>Put all pawns on the Start tile.</li>
-<li>Each player throws the dice. The highest number starts.</li>
-</ol>
+<h2>Getting started</h2>
+<ul>
+<li>The game is played with a minimum of 2 players and a maximum of 4 players.</li>
+<li>Players choose their pawns. Each player must have a pawn of a different shape or color.</li>
+<li>Each player rolls the dice. The first player to roll a 6 starts, followed by the player on their left, and so on.</li>
+<li>Players take turns rolling the dice and moving their pawns forward by the number of tiles shown on the dice.</li>
+</ul>
 </section>
 <section class="block">
-<h2>A turn</h2>
-<ol>
-<li>Throw the dice and move your pawn forward by that number of tiles.</li>
-<li>If you land on a coloured tile, read it aloud and apply its effect.</li>
-<li><span class="badge badge-good">Good practice</span> tiles help you (move again, jump forward).</li>
-<li><span class="badge badge-bad">Bad practice</span> tiles slow you down (go back, miss a turn, stay stuck).</li>
-<li>Want to know more about a tile? Find it on this website.</li>
-</ol>
+<h2>Winning</h2>
+<p>The winner is the first player to land exactly on the final tile. If a player rolls a number higher than the number of spaces needed to finish, they must move backward by the number of extra spaces.</p>
 </section>
 <section class="block">
 <h2>First phase: discovery and memorization</h2>
-<p>When a player lands on a bonus or penalty tile, they must do the action written on that tile. They must also try to memorize the key words of these tiles: they will be useful during the second phase.</p>
-</section>
-<section class="block">
-<h2>Transition to the second phase</h2>
-<p>The first player to reach the end of the first phase earns a <strong>Joker</strong> for the second phase. Once the first phase is over, take the <strong>Level 2</strong> board to begin the second phase.</p>
+<p>During the first phase, when a player lands on a bonus or penalty tile, they must perform the action indicated on that tile. They must also try to memorize the words associated with these tiles, as they will be useful during the second phase.</p>
 </section>
 <section class="block">
 <h2>Second phase: memory and strategy</h2>
-<p>When a player lands on a bonus or penalty tile, an opponent draws a definition card and reads the definition aloud (not the answer!). The player must say the matching key word memorized during the first phase.</p>
+<p>During the second phase, when a player lands on a bonus or penalty tile, an opponent draws a card and reads the definition aloud. The player must give the corresponding word memorized during the first phase. The answer is written under the definition on the card.</p>
 <ul>
-<li><span class="badge badge-bad">Penalty tile</span> Right word: you avoid the penalty. Wrong word: you do the action written on the tile.</li>
-<li><span class="badge badge-good">Bonus tile</span> Right word: you get the advantage written on the tile. Wrong word: you cannot use it.</li>
+<li><span class="badge badge-bad">Penalty tile</span> If the player remembers the correct word, they avoid the penalty indicated on the tile. Otherwise, they must perform the required action.</li>
+<li><span class="badge badge-good">Bonus tile</span> If the player remembers the correct word, they receive the advantage indicated on the tile. Otherwise, they cannot benefit from it.</li>
 </ul>
-<p>The objective is to use your memory to avoid penalties and gain advantages, so you progress faster through the game.</p>
+<p>The objective is to use memory skills to avoid penalties and gain advantages in order to progress faster through the game.</p>
 </section>
 <section class="block">
-<h2>The Joker</h2>
-<p>The Joker can be used once, on a bonus or a penalty tile: it cancels a penalty or activates a bonus, even if you cannot remember the word.</p>
+<h2>Transition to the second phase</h2>
+<p>The first player to reach the end of the first phase earns a <strong>Joker</strong> for the second phase. This Joker can be used on either a bonus or penalty tile, giving the player a strategic advantage.</p>
+<p>Once the first phase is completed, flip the game board over to begin the second phase.</p>
+<p>The Joker allows the player to cancel a penalty or activate a bonus, even if they cannot remember the correct word.</p>
 </section>
 <section class="block">
-<h2>Special effects</h2>
+<h2>What the tiles mean</h2>
 <ul>
 <li><strong>Double your move</strong>: move forward again by the same number you just rolled.</li>
 <li><strong>Go to tile X / Back to tile X / Back to start</strong>: move your pawn directly to that tile.</li>
 <li><strong>Miss 1 turn</strong>: you do not play next turn.</li>
 <li><strong>Stuck until a 6</strong>: you stay on this tile until you roll a 6.</li>
 <li><strong>1st turn: 6 = here</strong> (tile 13): if you roll a 6 on your very first turn, go directly to tile 13.</li>
-<li><strong>Exact roll only</strong> (tile 30): you must land exactly on tile 30 to win.</li>
+<li><strong>Exact roll only</strong> (tile 30): you must land exactly on tile 30. Extra points make you move backward.</li>
 </ul>
-</section>
-<section class="block">
-<h2>End of the game</h2>
-<p>The first player to land exactly on tile 30 during the second phase wins. Everyone else wins some knowledge about Green IT!</p>
+<p>Want to know more about a tile? Find it in the <a href="contents.html">Contents</a> of this website.</p>
 </section>
 """
 

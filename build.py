@@ -3,11 +3,9 @@
 
 Usage:
     python3 build.py                                  # build the site into dist/
-    python3 build.py --base-url https://example.org/greenflag
-                                                      # also generate QR codes + printable sheet
 
 Content lives in content/tiles.json. Styles live in assets/style.css.
-Only the Python standard library is needed, except for QR codes (pip install qrcode).
+Only the Python standard library is needed.
 """
 import argparse
 import html
@@ -158,7 +156,7 @@ def index_page(tiles, show_checks):
     body = f"""
 <section class="hero">
   <h1>Contents</h1>
-  <p>Landed on a coloured tile? Find its number below (or scan its QR code), check its effect and open it to read the detailed explanation.</p>
+  <p>Landed on a coloured tile? Find its number below, check its effect and open it to read the detailed explanation.</p>
   <p class="legend"><span class="badge badge-good">Good practice</span> <span class="badge badge-bad">Bad practice</span> <span class="badge badge-finish">Finish</span></p>
 </section>
 <h2 class="toc-heading">The board, tile by tile</h2>
@@ -255,34 +253,8 @@ ABOUT = """
 """
 
 
-def build_qr(tiles, base_url, show_checks):
-    try:
-        import qrcode
-        import qrcode.image.svg
-    except ImportError:
-        print("! qrcode not installed: run `pip install qrcode` to generate QR codes")
-        return
-    qr_dir = DIST / "qr"
-    qr_dir.mkdir(exist_ok=True)
-    base = base_url.rstrip("/")
-    items = []
-    for t in sorted([t for t in tiles if t.get("tile")], key=lambda t: t["tile"]):
-        url = f"{base}/tiles/{t['id']}.html"
-        n = t["tile"]
-        img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage, box_size=10, border=2)
-        img.save(str(qr_dir / f"{n:02d}-{t['id']}.svg"))
-        items.append(f"""<li class="print-card card-{t['type']}">
-  <img src="qr/{n:02d}-{t['id']}.svg" alt="QR code">
-  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}<br><small>{e(url)}</small></div>
-</li>""")
-    body = '<h1>Printable tiles with QR codes</h1><p class="no-print">Print this page (Ctrl+P) to get the texts and QR codes for the board and cards.</p><ul class="print-list">' + "".join(items) + "</ul>"
-    (DIST / "print.html").write_text(page("Print", body, show_checks=show_checks), encoding="utf-8")
-    print(f"QR codes generated for {base}")
-
-
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base-url", help="Public URL of the site, used for QR codes")
     args = ap.parse_args()
     show = False
 
@@ -307,8 +279,6 @@ def main():
     (DIST / "rules.html").write_text(page("How to play", RULES, show_checks=show), encoding="utf-8")
     (DIST / "about.html").write_text(page("About", ABOUT, show_checks=show), encoding="utf-8")
 
-    if args.base_url:
-        build_qr(tiles, args.base_url, show)
     print(f"Built {len(tiles)} pages ({sum(1 for t in tiles if t.get('tile'))} board tiles) into {DIST}")
 
 

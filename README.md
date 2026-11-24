@@ -15,23 +15,19 @@ dist/                <- le site prêt à mettre en ligne (généré, ne pas modi
 
 ## Générer le site
 
-Python 3 suffit (aucune bibliothèque nécessaire, sauf pour les QR codes).
+Python 3 suffit (aucune bibliothèque nécessaire).
 
 ```bash
 python3 build.py                                   # génère dist/
-pip install qrcode                                  # une seule fois, pour les QR codes
-python3 build.py --base-url https://VOTRE-URL/greenflag   # + QR codes dans dist/qr/ et dist/print.html
 ```
 
-`dist/print.html` est une page imprimable avec, pour chaque case du plateau, le texte court du plateau et son QR code.
-Les QR codes pointent vers `<base-url>/tiles/<id>.html` : l'id ne doit donc plus changer une fois les QR imprimés.
 
 Tester en local : `cd dist && python3 -m http.server 8000` puis ouvrir http://localhost:8000
 
 ## Modifier le contenu
 
 Dans `content/tiles.json`, chaque case a :
-- `id` : nom dans l'URL (ne pas changer après impression des QR codes)
+- `id` : nom dans l'URL de la page de la case
 - `tile` : numéro de la case sur le plateau (`null` = page "Go further", hors plateau)
 - `type` : `good`, `bad` ou `finish` ; `effect` : l'effet écrit sur la case ("Double your move", "Back to tile 14"...)
 - `board` : la phrase courte imprimée sur le plateau

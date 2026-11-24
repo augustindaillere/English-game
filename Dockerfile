@@ -1,10 +1,8 @@
 # Stage 1: build the static site with Python
 FROM python:3.12-alpine AS build
 WORKDIR /src
-RUN pip install --no-cache-dir qrcode
 COPY . .
-ARG SITE_URL=https://vps123926.serveur-vps.net
-RUN python3 build.py --base-url "$SITE_URL" && python3 tests/check_site.py
+RUN python3 build.py && python3 tests/check_site.py
 
 # Stage 2: serve it with a tiny Nginx
 FROM nginx:1.27-alpine

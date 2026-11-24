@@ -1,9 +1,12 @@
 {
-  "_comment": "Hard level settings: default bonus/malus for every tile. A tile can have its own by adding \"bonus\" and/or \"malus\" in content/tiles.json. Then run python3 build.py again.",
-  "hard": {
-    "bonus": "Move forward 2 tiles.",
-    "malus": "Move back 2 tiles.",
-    "order": "Apply the tile's own effect first, then your bonus or malus. The tile you reach with a bonus or malus has no effect.",
-    "finish": "You already reached Net zero, so no bonus or malus here. Well played!"
+  "_comment": "Phase 2 messages shown after the player answers. {effect} is replaced by the tile's effect (e.g. 'back to tile 14'). Run python3 build.py again after a change.",
+  "phase2": {
+    "good_right": "You get the bonus: {effect}.",
+    "good_wrong": "No bonus this time: ignore this tile.",
+    "bad_right": "You avoid the penalty ({effect}).",
+    "bad_wrong": "Apply the penalty: {effect}.",
+    "joker_good": "You get the bonus: {effect}.",
+    "joker_bad": "You avoid the penalty ({effect}).",
+    "finish": "You reached Net zero, well played!"
   }
 }

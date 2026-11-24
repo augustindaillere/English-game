@@ -1,0 +1,1433 @@
+From 1ca5f07dee558011b9864794997a598973037e36 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 24 Nov 2026 08:49:45 +0000
+Subject: [PATCH 1/3] Add Easy and Hard game levels with a type-the-word quiz
+
+Hard level: the tile page shows only the definition and the player types
+the word. Right answer gives a bonus, wrong answer a malus (texts in
+content/game.json). Tolerant matching: case, accents, punctuation,
+spacing, synonyms and small typos.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01J4gvDSj33hyHqfZcheinpa
+---
+ README.md              |  13 +++++-
+ assets/level.js        | 104 +++++++++++++++++++++++++++++++++++++++++
+ assets/style.css       |  60 ++++++++++++++++++++++++
+ build.py               | 104 +++++++++++++++++++++++++++++++++++++----
+ content/game.json      |   9 ++++
+ content/tiles.json     | 101 ++++++++++++++++++++++++++++++++++++++-
+ docker/nginx-site.conf |   2 +-
+ tests/check_site.py    |   5 ++
+ 8 files changed, 387 insertions(+), 11 deletions(-)
+ create mode 100644 assets/level.js
+ create mode 100644 content/game.json
+
+diff --git a/README.md b/README.md
+index e05c5e0..56ecbd7 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,7 @@
+ # GreenFlag, site compagnon (V1)
+ 
+ Site statique en anglais, aligné sur le plateau de 30 cases : une page d'accueil avec le bouton "Start a game", un sommaire (contents.html), une page par case colorée (13), 5 pages "Go further", une page "How to play" et une page "About".
+-Pas de base de données, pas de JavaScript, pas de dépendance externe (environ 400 Ko au total).
++Pas de base de données, pas de dépendance externe, un seul petit script JavaScript (`assets/level.js`) pour le niveau difficile (environ 400 Ko au total).
+ 
+ ## Structure
+ 
+@@ -37,10 +37,21 @@ Dans `content/tiles.json`, chaque case a :
+ - `type` : `good`, `bad` ou `finish` ; `effect` : l'effet écrit sur la case ("Double your move", "Back to tile 14"...)
+ - `board` : la phrase courte imprimée sur le plateau
+ - `intro`, `sections` (avec `text`, `facts` ou `list`), `related`, `sources`
++- `definition` : la définition seule, imprimée sur le plateau en niveau difficile (ne doit pas contenir le mot)
++- `answers` : les autres réponses acceptées en niveau difficile (synonymes, sigles). Le titre est toujours accepté.
+ - `"check": true` sur un chiffre = à vérifier (affiche une étiquette jaune "to verify")
+ 
+ Puis relancer `python3 build.py`.
+ 
++## Niveaux de jeu
++
++- **Easy** : le mot et sa définition sont écrits sur le plateau, le site sert aux explications (fonctionne aussi sans JavaScript).
++- **Hard** : seule la définition est sur le plateau. Sur la page de la case, le joueur relit la définition et tape le mot. Bonne réponse = bonus, mauvaise = malus, un seul essai.
++
++Le niveau se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisé sur le téléphone.
++La comparaison ignore majuscules, accents, ponctuation, espaces, "the/a/an" au début, et tolère une petite faute de frappe.
++Les textes du bonus et du malus se modifient dans `content/game.json`.
++
+ ## Mise en ligne (comme crazydev)
+ 
+ Même méthode que crazydev : à chaque push sur `main`, GitHub Actions construit et vérifie le site, puis se connecte au VPS en SSH et lance `scripts/deploy.sh`.
+diff --git a/assets/level.js b/assets/level.js
+new file mode 100644
+index 0000000..f9ecec3
+--- /dev/null
++++ b/assets/level.js
+@@ -0,0 +1,104 @@
++/* GreenFlag - game level (Easy / Hard) and the Hard level quiz.
++   Easy: word + definition on the board, the site gives explanations (works without JavaScript).
++   Hard: only the definition is on the board; on the tile page the player types the word. */
++(function () {
++  "use strict";
++  var KEY = "greenflag-level";
++  var root = document.documentElement;
++
++  function getLevel() {
++    try { return localStorage.getItem(KEY); } catch (err) { return null; }
++  }
++  function setLevel(level) {
++    try { localStorage.setItem(KEY, level); } catch (err) { /* private mode: level kept for this page only */ }
++    root.setAttribute("data-level", level);
++  }
++
++  // A link such as contents.html?level=hard chooses the level.
++  var fromUrl = new URLSearchParams(location.search).get("level");
++  if (fromUrl === "easy" || fromUrl === "hard") setLevel(fromUrl);
++  else root.setAttribute("data-level", getLevel() || "unset");
++
++  /* ---------- Tolerant answer check ---------- */
++  function normalize(s) {
++    s = s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
++    s = s.replace(/['’`]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
++    return s.replace(/^(the|a|an) /, "");
++  }
++  function distance(a, b) {
++    var prev = [], cur, i, j;
++    for (j = 0; j <= b.length; j++) prev[j] = j;
++    for (i = 1; i <= a.length; i++) {
++      cur = [i];
++      for (j = 1; j <= b.length; j++) {
++        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
++      }
++      prev = cur;
++    }
++    return prev[b.length];
++  }
++  function isCorrect(given, answers) {
++    var g = normalize(given), gs = g.replace(/ /g, "");
++    if (!g) return false;
++    return answers.some(function (ans) {
++      var a = normalize(ans), as = a.replace(/ /g, "");
++      if (g === a || gs === as) return true;
++      // Small typos are fine: 1 letter for words of 5+ letters, 2 letters for 10+.
++      var allowed = as.length >= 10 ? 2 : as.length >= 5 ? 1 : 0;
++      return allowed > 0 && distance(gs, as) <= allowed;
++    });
++  }
++
++  /* ---------- Page behaviour ---------- */
++  function init() {
++    // Level switch buttons (home, contents, tile pages)
++    Array.prototype.forEach.call(document.querySelectorAll("[data-set-level]"), function (btn) {
++      btn.addEventListener("click", function (ev) {
++        var level = btn.getAttribute("data-set-level");
++        setLevel(level);
++        if (btn.tagName === "BUTTON") { ev.preventDefault(); resetQuiz(); }
++      });
++    });
++
++    var quiz = document.getElementById("quiz");
++    if (!quiz) return;
++    var pageTitle = document.title;
++    var form = quiz.querySelector("form");
++    var input = quiz.querySelector("input");
++    var result = quiz.querySelector(".quiz-result");
++    var answers = JSON.parse(quiz.getAttribute("data-answers"));
++
++    function hideTitle() {
++      // Do not give the answer away in the browser tab.
++      if (root.getAttribute("data-level") !== "easy" && !root.classList.contains("quiz-done")) {
++        document.title = quiz.getAttribute("data-tab-title");
++      } else {
++        document.title = pageTitle;
++      }
++    }
++    window.resetQuizTitle = hideTitle;
++    hideTitle();
++
++    form.addEventListener("submit", function (ev) {
++      ev.preventDefault();
++      if (!input.value.trim()) { input.focus(); return; }
++      var ok = isCorrect(input.value, answers);
++      input.disabled = true;
++      form.querySelector("button").disabled = true;
++      result.className = "quiz-result " + (ok ? "is-right" : "is-wrong");
++      var tpl = quiz.querySelector(ok ? "template.quiz-right" : "template.quiz-wrong");
++      result.innerHTML = "";
++      result.appendChild(tpl.content.cloneNode(true));
++      result.hidden = false;
++      root.classList.add("quiz-done");
++      hideTitle();
++      result.focus();
++    });
++  }
++  function resetQuiz() {
++    if (window.resetQuizTitle) window.resetQuizTitle();
++  }
++
++  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
++  else init();
++})();
+diff --git a/assets/style.css b/assets/style.css
+index adb253c..00cba94 100644
+--- a/assets/style.css
++++ b/assets/style.css
+@@ -157,3 +157,63 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
+   .toc-row a { padding: 12px; gap: 12px; min-height: 56px; }
+   .site-footer { padding: 16px; font-size: 0.8rem; }
+ }
++
++/* ---------- Game levels (Easy / Hard) ----------
++   data-level on <html> is set by assets/level.js: easy, hard or unset.
++   Without JavaScript there is no data-level and the site behaves like the Easy level. */
++.level-switch, .hard-only, .toc-definition, .quiz { display: none; }
++[data-level] .level-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
++.level-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
++.level-prompt { display: none; width: 100%; font-weight: 700; }
++.level-switch button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 18px; border-radius: 999px; cursor: pointer;
++  border: 1px solid var(--border); background: var(--surface); color: var(--text); }
++[data-level="easy"] .level-switch [data-set-level="easy"],
++[data-level="hard"] .level-switch [data-set-level="hard"] { background: var(--brand); border-color: var(--brand); color: #fff; }
++
++/* Tile page, level not chosen yet (e.g. first QR scan): ask before showing anything */
++[data-level="unset"] .has-quiz .level-switch { padding: 14px; background: var(--surface); border: 2px solid var(--brand); border-radius: var(--radius); }
++[data-level="unset"] .has-quiz .level-prompt { display: block; }
++[data-level="unset"] .has-quiz .level-label { display: none; }
++[data-level="unset"] .has-quiz .level-switch button { flex: 1; min-height: 48px; }
++[data-level="unset"] .has-quiz .tile-reveal { display: none; }
++
++/* Hard level */
++[data-level="hard"] .hard-only { display: block; }
++[data-level="hard"] .quiz { display: block; border: 2px solid var(--brand); }
++[data-level="hard"]:not(.quiz-done) .has-quiz .tile-reveal { display: none; }
++[data-level="hard"] .board-text { display: none; }
++[data-level="hard"] .toc-title.has-def { display: none; }
++[data-level="hard"] .toc-definition { display: block; font-size: 0.92rem; }
++[data-level="hard"] .toc-row .toc-summary { display: none; }
++[data-level="hard"] .toc-row .toc-title:not(.has-def) + .toc-summary { display: block; }
++
++.quiz h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
++.quiz-def { font-size: 1.15rem; font-weight: 600; margin: 0 0 14px; }
++.quiz-form label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
++.quiz-row { display: flex; gap: 8px; }
++.quiz-row input { flex: 1; min-width: 0; font: inherit; font-size: 1.05rem; padding: 10px 14px; min-height: 48px;
++  border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); }
++.quiz-row input:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
++.quiz-row button { font: inherit; font-weight: 700; padding: 0 20px; min-height: 48px; border: 0; border-radius: 999px;
++  background: var(--brand); color: #fff; cursor: pointer; }
++.quiz-row button:disabled, .quiz-row input:disabled { opacity: .6; cursor: default; }
++.quiz-result { margin-top: 14px; padding: 12px 14px; border-radius: 10px; }
++.quiz-result p { margin: 0; }
++.quiz-result p + p { margin-top: 4px; }
++.quiz-result:focus { outline: none; }
++.quiz-result.is-right { background: var(--good-bg); color: var(--text); border-left: 4px solid var(--good); }
++.quiz-result.is-wrong { background: var(--bad-bg); color: var(--text); border-left: 4px solid var(--bad); }
++.quiz-verdict { font-weight: 700; }
++.quiz-order { font-size: 0.85rem; color: var(--muted); margin: 12px 0 0; }
++
++/* Home page: level choice */
++.home-start { margin: 24px 0 10px; font-size: 1.2rem; }
++.levels { display: grid; gap: 12px; text-align: left; }
++.level-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: var(--radius); text-decoration: none;
++  color: var(--text); background: var(--surface); border: 2px solid var(--brand); }
++.level-card strong { font-size: 1.2rem; color: var(--brand-dark); }
++.level-card span { font-size: 0.92rem; color: var(--muted); }
++.level-card-hard { background: var(--brand); }
++.level-card-hard strong, .level-card-hard span { color: #fff; }
++.level-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
++@media (min-width: 601px) { .levels { grid-template-columns: 1fr 1fr; } }
+diff --git a/build.py b/build.py
+index f520bea..a2a4684 100644
+--- a/build.py
++++ b/build.py
+@@ -11,6 +11,7 @@ Content lives in content/tiles.json. Styles live in assets/style.css.
+ Only the Python standard library is needed, except for QR codes (pip install qrcode).
+ """
+ import argparse
++import hashlib
+ import html
+ import json
+ import shutil
+@@ -19,6 +20,19 @@ from pathlib import Path
+ ROOT = Path(__file__).parent
+ DIST = ROOT / "dist"
+ SITE_NAME = "GreenFlag"
++GAME = json.loads((ROOT / "content" / "game.json").read_text(encoding="utf-8"))
++HARD = GAME["hard"]
++
++
++def asset_version():
++    """Short hash of the assets, added to their URLs so phones never keep an old cached copy."""
++    h = hashlib.sha1()
++    for f in sorted((ROOT / "assets").glob("*")):
++        h.update(f.read_bytes())
++    return h.hexdigest()[:8]
++
++
++VERSION = asset_version()
+ 
+ e = html.escape
+ 
+@@ -34,7 +48,8 @@ def page(title, body, depth=0, show_checks=True):
+ <meta name="theme-color" content="#2e9e5b">
+ <meta name="description" content="GreenFlag: a board game about Green IT and eco-design. Detailed explanations of every tile.">
+ <title>{e(title)} | {SITE_NAME}</title>
+-<link rel="stylesheet" href="{prefix}assets/style.css">
++<link rel="stylesheet" href="{prefix}assets/style.css?v={VERSION}">
++<script src="{prefix}assets/level.js?v={VERSION}"></script>
+ <link rel="icon" href="{prefix}assets/flag.svg" type="image/svg+xml">
+ </head>
+ <body{body_class}>
+@@ -57,6 +72,14 @@ def page(title, body, depth=0, show_checks=True):
+ """
+ 
+ 
++LEVEL_SWITCH = """<div class="level-switch" role="group" aria-label="Game level">
++  <span class="level-prompt">Which level are you playing?</span>
++  <span class="level-label">Level</span>
++  <button type="button" data-set-level="easy">Easy</button>
++  <button type="button" data-set-level="hard">Hard</button>
++</div>"""
++
++
+ TYPE_LABEL = {"good": "Good practice", "bad": "Bad practice", "finish": "Finish"}
+ 
+ 
+@@ -87,6 +110,36 @@ def render_section(s):
+     return "\n".join(out)
+ 
+ 
++def quiz_html(t):
++    """Hard level: the definition is shown and the player must type the word."""
++    if not t.get("definition"):
++        return ""
++    answers = [t["title"]] + t.get("answers", [])
++    if t["type"] == "finish":
++        right = wrong = f'<p class="quiz-effect">{e(HARD["finish"])}</p>'
++        order = ""
++    else:
++        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(HARD["bonus"])}</p>'
++        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(HARD["malus"])}</p>'
++        order = f'<p class="quiz-order">{e(HARD["order"])}</p>'
++    word = f"<strong>{e(t['title'])}</strong>"
++    return f"""<section id="quiz" class="quiz block" data-answers="{e(json.dumps(answers, ensure_ascii=False))}" data-tab-title="{e(tile_label(t))} | {SITE_NAME}">
++    <h2>Hard level: find the word</h2>
++    <p class="quiz-def">{e(t['definition'])}</p>
++    <form class="quiz-form" autocomplete="off">
++      <label for="answer">Your answer</label>
++      <div class="quiz-row">
++        <input id="answer" name="answer" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" required>
++        <button type="submit">Check</button>
++      </div>
++    </form>
++    <div class="quiz-result" tabindex="-1" aria-live="polite" hidden></div>
++    <template class="quiz-right"><p class="quiz-verdict">Correct! The word was {word}.</p>{right}</template>
++    <template class="quiz-wrong"><p class="quiz-verdict">Not quite. The word was {word}.</p>{wrong}</template>
++    {order}
++  </section>"""
++
++
+ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
+     related = [by_id[r] for r in t.get("related", []) if r in by_id]
+     rel_html = ""
+@@ -106,16 +159,22 @@ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
+     prev_html = nav_link(prev, "prev", True)
+     next_html = nav_link(nxt, "next", False)
+     board_html = f'<blockquote class="board-text"><strong>On the board:</strong> {e(t["board"])}</blockquote>' if t.get("board") else ""
++    quiz = quiz_html(t)
++    has_quiz = " has-quiz" if quiz else ""
+     body = f"""
+-<article class="tile tile-{t['type']}">
++<article class="tile tile-{t['type']}{has_quiz}">
++  {LEVEL_SWITCH if quiz else ""}
+   <p class="tile-number">{tile_label(t)}</p>
+-  <h1>{e(t['title'])}</h1>
++  <h1 class="tile-reveal">{e(t['title'])}</h1>
+   {badge(t)}
++  {quiz}
++  <div class="tile-reveal">
+   {board_html}
+   <p class="intro">{e(t['intro'])}</p>
+   {''.join(render_section(s) for s in t['sections'])}
+   {rel_html}
+   <section class="block sources"><h2>Sources</h2><ol>{sources}</ol></section>
++  </div>
+ </article>
+ <nav class="tile-nav" aria-label="Tile navigation">
+   {prev_html}
+@@ -129,11 +188,13 @@ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
+ def toc_row(t):
+     num = f"{t['tile']:02d}" if t.get("tile") else "+"
+     summary = f'<span class="toc-summary">{e(t.get("board") or t["intro"])}</span>'
++    if t.get("definition"):
++        summary += f'<span class="toc-definition">{e(t["definition"])}</span>'
+     effect = f'<span class="toc-effect">{e(t["effect"])}</span>' if t.get("effect") else ""
+     return f"""<li class="toc-row toc-{t['type']}">
+   <a href="tiles/{t['id']}.html">
+     <span class="toc-num">{num}</span>
+-    <span class="toc-text"><span class="toc-title">{e(t['title'])}</span>{summary}</span>
++    <span class="toc-text"><span class="toc-title{" has-def" if t.get("definition") else ""}">{e(t['title'])}</span>{summary}</span>
+     <span class="toc-dots" aria-hidden="true"></span>
+     {effect}
+   </a>
+@@ -147,7 +208,17 @@ def home_page(show_checks):
+   <h1>GreenFlag</h1>
+   <p class="home-tagline">A board game about Green IT &amp; eco-design.</p>
+   <p>Roll the dice, move along 30 tiles and discover the environmental impact of digital technology. Good practices help you move forward, bad practices slow you down. First to reach <strong>Net zero</strong> wins!</p>
+-  <p><a class="button" href="contents.html">Start a game</a></p>
++  <h2 class="home-start">Start a game</h2>
++  <div class="levels">
++    <a class="level-card" href="contents.html?level=easy" data-set-level="easy">
++      <strong>Easy</strong>
++      <span>The word and its definition are written on the board. Open a tile here to learn more.</span>
++    </a>
++    <a class="level-card level-card-hard" href="contents.html?level=hard" data-set-level="hard">
++      <strong>Hard</strong>
++      <span>Only the definition is on the board. Open the tile here and type the word: right answer = bonus, wrong answer = malus.</span>
++    </a>
++  </div>
+   <p class="home-links"><a href="rules.html">How to play</a> &middot; <a href="about.html">About</a></p>
+ </section>
+ """
+@@ -160,7 +231,9 @@ def index_page(tiles, show_checks):
+     body = f"""
+ <section class="hero">
+   <h1>Contents</h1>
++  {LEVEL_SWITCH}
+   <p>Landed on a coloured tile? Find its number below (or scan its QR code), check its effect and open it to read the detailed explanation.</p>
++  <p class="hard-only">Hard level: open the tile, read the definition again and type the matching word.</p>
+   <p class="legend"><span class="badge badge-good">Good practice</span> <span class="badge badge-bad">Bad practice</span> <span class="badge badge-finish">Finish</span></p>
+ </section>
+ <h2 class="toc-heading">The board, tile by tile</h2>
+@@ -190,12 +263,26 @@ RULES = """
+ </ol>
+ </section>
+ <section class="block">
++<h2>Two levels</h2>
++<ul>
++<li><strong>Easy</strong>: the word and its definition are written on each coloured tile. Use this website to learn more about them.</li>
++<li><strong>Hard</strong>: only the definition is written on the tile. Scan the tile (or find its number in the Contents), read the definition and type the matching word.
++<ul>
++<li>Right answer: <strong>bonus</strong>, {bonus}</li>
++<li>Wrong answer: <strong>malus</strong>, {malus}</li>
++<li>You only get one try. Capital letters, accents and small typos do not matter.</li>
++<li>{order}</li>
++</ul></li>
++</ul>
++</section>
++<section class="block">
+ <h2>A turn</h2>
+ <ol>
+ <li>Throw the dice and move your pawn forward by that number of tiles.</li>
+ <li>If you land on a coloured tile, read it aloud and apply its effect.</li>
+ <li><span class="badge badge-good">Good practice</span> tiles help you (move again, jump forward).</li>
+ <li><span class="badge badge-bad">Bad practice</span> tiles slow you down (go back, miss a turn, stay stuck).</li>
++<li>Hard level: scan the tile and find the word to win a bonus (see "Two levels").</li>
+ <li>Want to know more? Scan the QR code of the tile or find it on this website.</li>
+ </ol>
+ </section>
+@@ -236,7 +323,7 @@ ABOUT = """
+ </section>
+ <section class="block">
+ <h2>About this website</h2>
+-<p>This site practises what it teaches: static pages, no tracker, no external font, no JavaScript, very light.</p>
++<p>This site practises what it teaches: static pages, no tracker, no external font, very light. The only JavaScript is a tiny script (a few KB) for the Hard level quiz; everything else works without it.</p>
+ </section>
+ """
+ 
+@@ -259,7 +346,7 @@ def build_qr(tiles, base_url, show_checks):
+         img.save(str(qr_dir / f"{n:02d}-{t['id']}.svg"))
+         items.append(f"""<li class="print-card card-{t['type']}">
+   <img src="qr/{n:02d}-{t['id']}.svg" alt="QR code">
+-  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}<br><small>{e(url)}</small></div>
++  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}{'<br><em>Hard level:</em> ' + e(t['definition']) if t.get('definition') else ''}<br><small>{e(url)}</small></div>
+ </li>""")
+     body = '<h1>Printable tiles with QR codes</h1><p class="no-print">Print this page (Ctrl+P) to get the texts and QR codes for the board and cards.</p><ul class="print-list">' + "".join(items) + "</ul>"
+     (DIST / "print.html").write_text(page("Print", body, show_checks=show_checks), encoding="utf-8")
+@@ -291,7 +378,8 @@ def main():
+         (DIST / "tiles" / f"{t['id']}.html").write_text(tile_page(t, by_id, show, prev, nxt), encoding="utf-8")
+     (DIST / "index.html").write_text(home_page(show), encoding="utf-8")
+     (DIST / "contents.html").write_text(index_page(tiles, show), encoding="utf-8")
+-    (DIST / "rules.html").write_text(page("How to play", RULES, show_checks=show), encoding="utf-8")
++    rules = RULES.format(bonus=e(HARD["bonus"].rstrip(".").lower()), malus=e(HARD["malus"].rstrip(".").lower()), order=e(HARD["order"]))
++    (DIST / "rules.html").write_text(page("How to play", rules, show_checks=show), encoding="utf-8")
+     (DIST / "about.html").write_text(page("About", ABOUT, show_checks=show), encoding="utf-8")
+ 
+     if args.base_url:
+diff --git a/content/game.json b/content/game.json
+new file mode 100644
+index 0000000..a44b23f
+--- /dev/null
++++ b/content/game.json
+@@ -0,0 +1,9 @@
++{
++  "_comment": "Hard level settings. Change the texts below, then run python3 build.py again.",
++  "hard": {
++    "bonus": "Move forward 2 tiles.",
++    "malus": "Move back 2 tiles.",
++    "order": "Apply the tile's own effect first, then your bonus or malus. The tile you reach with a bonus or malus has no effect.",
++    "finish": "You already reached Net zero, so no bonus or malus here. Well played!"
++  }
++}
+diff --git a/content/tiles.json b/content/tiles.json
+index 99bcf1a..70f0f36 100644
+--- a/content/tiles.json
++++ b/content/tiles.json
+@@ -6,6 +6,15 @@
+     "effect": "Go to tile 6",
+     "title": "Reuse, recycle",
+     "board": "Buying refurbished avoids making a brand-new device.",
++    "definition": "Giving a device a second life (buying refurbished, donating, selling) and, at the very end, recovering its materials.",
++    "answers": [
++      "reuse recycle",
++      "reuse and recycle",
++      "reuse",
++      "recycle",
++      "recycling",
++      "reuse and recycling"
++    ],
+     "intro": "The greenest device is the one that already exists. Before recycling, the best options are to reuse: buy refurbished, sell or donate what you no longer use.",
+     "sections": [
+       {
+@@ -64,6 +73,15 @@
+     "effect": "Double your move",
+     "title": "Product lifetime",
+     "board": "Repairing your PC makes it last: fewer devices thrown away.",
++    "definition": "How long a device is used before it is replaced: repairing it makes this period longer.",
++    "answers": [
++      "product lifetime",
++      "lifetime",
++      "product life",
++      "lifespan",
++      "product lifespan",
++      "life span"
++    ],
+     "intro": "Keeping devices longer is the most effective way to reduce the environmental impact of IT, because it spreads the impact of manufacturing over more years.",
+     "sections": [
+       {
+@@ -127,6 +145,13 @@
+     "effect": "Miss 1 turn",
+     "title": "Wasted energy",
+     "board": "On standby, your TV keeps using electricity for nothing.",
++    "definition": "Electricity used for nothing, for example by devices left on standby.",
++    "answers": [
++      "wasted energy",
++      "energy waste",
++      "waste of energy",
++      "energy wasted"
++    ],
+     "intro": "Many devices keep consuming electricity even when nobody uses them: TVs, internet boxes, TV decoders, game consoles, chargers left plugged in.",
+     "sections": [
+       {
+@@ -160,6 +185,12 @@
+     "effect": "Double your move",
+     "title": "Cut down on",
+     "board": "Deleting old emails frees up space on servers.",
++    "definition": "To use less of something, for example by deleting old emails and files stored on servers.",
++    "answers": [
++      "cut down on",
++      "cut down",
++      "reduce"
++    ],
+     "intro": "\"The cloud\" is not in the sky: it is physical servers and hard drives in datacenters. Cutting down on what you store and send means less hardware to build, power and cool.",
+     "sections": [
+       {
+@@ -194,6 +225,15 @@
+     "effect": "1st turn: 6 = here",
+     "title": "Sustainable web design",
+     "board": "A light website loads fast and uses less energy.",
++    "definition": "Creating light and simple websites that load fast and use less data and energy.",
++    "answers": [
++      "sustainable web design",
++      "eco design",
++      "ecodesign",
++      "web eco design",
++      "green web design",
++      "sustainable design"
++    ],
+     "intro": "Sustainable web design (or eco-design) means taking the environmental impact into account from the very beginning of a website or app: only useful features, light pages, compatibility with old devices.",
+     "sections": [
+       {
+@@ -284,6 +324,13 @@
+     "effect": "Back to tile 6",
+     "title": "Digital carbon footprint",
+     "board": "A heavy email sent to 1,000 people is stored 1,000 times.",
++    "definition": "The total amount of greenhouse gases caused by making and using digital devices and services.",
++    "answers": [
++      "digital carbon footprint",
++      "carbon footprint",
++      "digital footprint",
++      "digital carbon impact"
++    ],
+     "intro": "Every digital action has a carbon footprint: the devices we use, the networks that carry the data and the datacenters that store it all need materials and energy.",
+     "sections": [
+       {
+@@ -351,6 +398,14 @@
+     "effect": "Double your move",
+     "title": "Green coding",
+     "board": "Simple code makes the computer work less.",
++    "definition": "Writing simple, efficient software that makes computers work less and use less energy.",
++    "answers": [
++      "green coding",
++      "green code",
++      "eco coding",
++      "sustainable coding",
++      "green programming"
++    ],
+     "intro": "Green coding means writing software that needs fewer resources: less computing power, less memory, less data transfer. Efficient software runs well on older devices and uses less energy.",
+     "sections": [
+       {
+@@ -398,6 +453,11 @@
+     "effect": "Back to tile 14",
+     "title": "PUE (Power Usage Effectiveness)",
+     "board": "A badly designed data center wastes energy on cooling.",
++    "definition": "A data center indicator: total energy used divided by the energy used by the IT equipment only.",
++    "answers": [
++      "pue",
++      "power usage effectiveness"
++    ],
+     "intro": "Every email, video, cloud file and AI request is processed in a datacenter: a building full of servers that must be powered and cooled all day, every day. The PUE measures how much energy is wasted around the servers.",
+     "sections": [
+       {
+@@ -462,6 +522,13 @@
+     "effect": "Double your move",
+     "title": "Virtualization",
+     "board": "One server can replace several: less hardware.",
++    "definition": "Running several virtual servers on one physical machine to need less hardware.",
++    "answers": [
++      "virtualization",
++      "virtualisation",
++      "virtual machines",
++      "virtual machine"
++    ],
+     "intro": "Virtualization lets one physical server run several \"virtual machines\" (or containers), each behaving like a separate computer.",
+     "sections": [
+       {
+@@ -503,6 +570,12 @@
+     "effect": "Stuck until a 6",
+     "title": "Moore's law",
+     "board": "Replacing a PC just for more power creates waste.",
++    "definition": "The observation that the number of transistors on a chip doubles about every two years.",
++    "answers": [
++      "moores law",
++      "moore law",
++      "law of moore"
++    ],
+     "intro": "Moore's law is an observation made by Gordon Moore, co-founder of Intel: the number of transistors on a chip doubles regularly, so computers keep getting more powerful.",
+     "sections": [
+       {
+@@ -566,6 +639,15 @@
+     "effect": "Double your move",
+     "title": "Green energy",
+     "board": "A host powered by sun or wind pollutes less.",
++    "definition": "Electricity produced from renewable sources such as the sun, the wind or water.",
++    "answers": [
++      "green energy",
++      "renewable energy",
++      "renewable energies",
++      "clean energy",
++      "renewables",
++      "green energies"
++    ],
+     "intro": "Websites, apps and clouds run on servers that consume electricity day and night. Choosing a host powered by renewable energy greatly reduces the emissions of that electricity.",
+     "sections": [
+       {
+@@ -617,6 +699,16 @@
+     "effect": "Back to start",
+     "title": "Greenhouse gas emissions",
+     "board": "Coal-powered electricity releases a lot of CO2.",
++    "definition": "Gases such as CO2 released into the air that trap heat and cause global warming.",
++    "answers": [
++      "greenhouse gas emissions",
++      "greenhouse gas",
++      "greenhouse gases",
++      "greenhouse gases emissions",
++      "ghg",
++      "ghg emissions",
++      "greenhouse emissions"
++    ],
+     "intro": "Greenhouse gases (carbon dioxide CO2, methane, nitrous oxide...) trap heat in the atmosphere and cause climate change. Burning fossil fuels like coal to produce electricity is one of the main sources.",
+     "sections": [
+       {
+@@ -668,6 +760,13 @@
+     "effect": "Exact roll only",
+     "title": "Net zero",
+     "board": "Land exactly on this tile to win.",
++    "definition": "Balancing the greenhouse gases we emit with the ones we remove from the air, so the total is zero.",
++    "answers": [
++      "net zero",
++      "carbon neutrality",
++      "carbon neutral",
++      "zero net"
++    ],
+     "intro": "Net zero is the goal of the whole game, and of the planet: reaching a balance between the greenhouse gases we emit and those we remove from the atmosphere.",
+     "sections": [
+       {
+@@ -921,4 +1020,4 @@
+     "tile": null,
+     "effect": null
+   }
+-]
+\ No newline at end of file
++]
+diff --git a/docker/nginx-site.conf b/docker/nginx-site.conf
+index 61589f1..8910ee9 100644
+--- a/docker/nginx-site.conf
++++ b/docker/nginx-site.conf
+@@ -6,7 +6,7 @@ server {
+     server_tokens off;
+ 
+     gzip on;
+-    gzip_types text/css image/svg+xml;
++    gzip_types text/css application/javascript image/svg+xml;
+ 
+     location / { try_files $uri $uri/ =404; }
+     location /assets/ { expires 7d; }
+diff --git a/tests/check_site.py b/tests/check_site.py
+index 778a41b..fc7b0a2 100644
+--- a/tests/check_site.py
++++ b/tests/check_site.py
+@@ -19,11 +19,16 @@ for t in tiles:
+     for r in t.get("related", []):
+         if r not in ids:
+             errors.append(f"{t['id']}: unknown related tile {r}")
++    if t.get("tile") and not t.get("definition"):
++        errors.append(f"{t['id']}: board tile without a Hard level definition")
++    if t.get("definition") and t["title"].lower() in t["definition"].lower():
++        errors.append(f"{t['id']}: the Hard level definition gives the answer away")
+ 
+ for page in DIST.rglob("*.html"):
+     for href in re.findall(r'(?:href|src)="([^"#]+)"', page.read_text(encoding="utf-8")):
+         if href.startswith(("http://", "https://", "mailto:")):
+             continue
++        href = href.split("?")[0]
+         if not (page.parent / href).resolve().exists():
+             errors.append(f"{page.relative_to(DIST)}: broken link {href}")
+ 
+-- 
+2.43.0
+
+
+From 2b95340eb885fc861a63e07d6ac9b4262ac7437f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 24 Nov 2026 08:52:21 +0000
+Subject: [PATCH 2/3] Allow a per-tile bonus and malus for the Hard level
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01J4gvDSj33hyHqfZcheinpa
+---
+ README.md         | 2 +-
+ build.py          | 5 +++--
+ content/game.json | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/README.md b/README.md
+index 56ecbd7..7d3b2a1 100644
+--- a/README.md
++++ b/README.md
+@@ -50,7 +50,7 @@ Puis relancer `python3 build.py`.
+ 
+ Le niveau se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisé sur le téléphone.
+ La comparaison ignore majuscules, accents, ponctuation, espaces, "the/a/an" au début, et tolère une petite faute de frappe.
+-Les textes du bonus et du malus se modifient dans `content/game.json`.
++Le bonus et le malus par défaut (+2 / −2 cases) se modifient dans `content/game.json`. Pour une case précise, ajouter `"bonus"` et/ou `"malus"` à cette case dans `content/tiles.json` (ex. `"bonus": "Roll the dice again."`).
+ 
+ ## Mise en ligne (comme crazydev)
+ 
+diff --git a/build.py b/build.py
+index a2a4684..8bdf3d3 100644
+--- a/build.py
++++ b/build.py
+@@ -119,8 +119,9 @@ def quiz_html(t):
+         right = wrong = f'<p class="quiz-effect">{e(HARD["finish"])}</p>'
+         order = ""
+     else:
+-        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(HARD["bonus"])}</p>'
+-        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(HARD["malus"])}</p>'
++        # A tile can override the default bonus/malus of content/game.json with its own "bonus"/"malus"
++        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(t.get("bonus") or HARD["bonus"])}</p>'
++        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(t.get("malus") or HARD["malus"])}</p>'
+         order = f'<p class="quiz-order">{e(HARD["order"])}</p>'
+     word = f"<strong>{e(t['title'])}</strong>"
+     return f"""<section id="quiz" class="quiz block" data-answers="{e(json.dumps(answers, ensure_ascii=False))}" data-tab-title="{e(tile_label(t))} | {SITE_NAME}">
+diff --git a/content/game.json b/content/game.json
+index a44b23f..20e9d0f 100644
+--- a/content/game.json
++++ b/content/game.json
+@@ -1,5 +1,5 @@
+ {
+-  "_comment": "Hard level settings. Change the texts below, then run python3 build.py again.",
++  "_comment": "Hard level settings: default bonus/malus for every tile. A tile can have its own by adding \"bonus\" and/or \"malus\" in content/tiles.json. Then run python3 build.py again.",
+   "hard": {
+     "bonus": "Move forward 2 tiles.",
+     "malus": "Move back 2 tiles.",
+-- 
+2.43.0
+
+
+From a33a8cda28e35351767dbafbebc1e375455923e3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 24 Nov 2026 09:16:36 +0000
+Subject: [PATCH 3/3] Switch to the new rules: phase 1 / phase 2 and the Joker
+
+Easy/Hard become Phase 1 / Phase 2. In phase 2 the right word gives the
+tile's bonus or avoids its penalty; a wrong word means no bonus or the
+penalty applies. The Joker (won by the first to finish phase 1) can be used
+once per game, remembered on the phone. Rules page rewritten.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01J4gvDSj33hyHqfZcheinpa
+---
+ README.md         |  18 ++++---
+ assets/level.js   | 104 -------------------------------------
+ assets/phase.js   | 130 ++++++++++++++++++++++++++++++++++++++++++++++
+ assets/style.css  |  77 +++++++++++++++------------
+ build.py          | 108 +++++++++++++++++++++++---------------
+ content/game.json |  15 +++---
+ 6 files changed, 259 insertions(+), 193 deletions(-)
+ delete mode 100644 assets/level.js
+ create mode 100644 assets/phase.js
+
+diff --git a/README.md b/README.md
+index 7d3b2a1..d4002d7 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,7 @@
+ # GreenFlag, site compagnon (V1)
+ 
+ Site statique en anglais, aligné sur le plateau de 30 cases : une page d'accueil avec le bouton "Start a game", un sommaire (contents.html), une page par case colorée (13), 5 pages "Go further", une page "How to play" et une page "About".
+-Pas de base de données, pas de dépendance externe, un seul petit script JavaScript (`assets/level.js`) pour le niveau difficile (environ 400 Ko au total).
++Pas de base de données, pas de dépendance externe, un seul petit script JavaScript (`assets/phase.js`) pour la phase 2 et le Joker (environ 400 Ko au total).
+ 
+ ## Structure
+ 
+@@ -37,20 +37,22 @@ Dans `content/tiles.json`, chaque case a :
+ - `type` : `good`, `bad` ou `finish` ; `effect` : l'effet écrit sur la case ("Double your move", "Back to tile 14"...)
+ - `board` : la phrase courte imprimée sur le plateau
+ - `intro`, `sections` (avec `text`, `facts` ou `list`), `related`, `sources`
+-- `definition` : la définition seule, imprimée sur le plateau en niveau difficile (ne doit pas contenir le mot)
+-- `answers` : les autres réponses acceptées en niveau difficile (synonymes, sigles). Le titre est toujours accepté.
++- `definition` : la définition seule, imprimée sur la face phase 2 du plateau (ne doit pas contenir le mot)
++- `answers` : les autres réponses acceptées en phase 2 (synonymes, sigles). Le titre est toujours accepté.
+ - `"check": true` sur un chiffre = à vérifier (affiche une étiquette jaune "to verify")
+ 
+ Puis relancer `python3 build.py`.
+ 
+-## Niveaux de jeu
++## Phases de jeu
+ 
+-- **Easy** : le mot et sa définition sont écrits sur le plateau, le site sert aux explications (fonctionne aussi sans JavaScript).
+-- **Hard** : seule la définition est sur le plateau. Sur la page de la case, le joueur relit la définition et tape le mot. Bonne réponse = bonus, mauvaise = malus, un seul essai.
++- **Phase 1 (découverte)** : mots et définitions sur le plateau, on applique l'effet des cases et on mémorise les mots. Le site sert aux explications (fonctionne aussi sans JavaScript).
++- **Phase 2 (mémoire)** : plateau retourné, seules les définitions sont visibles. Sur la page de la case, le joueur tape le mot (un seul essai).
++  Case bonus : bon mot = bonus, sinon rien. Case malus : bon mot = malus évité, sinon on l'applique.
++- **Joker** : gagné par le premier à finir la phase 1. Bouton "Use the Joker" sur la page de la case (avant de répondre ou juste après une erreur), une fois par partie, mémorisé sur le téléphone. Choisir "Phase 1" sur l'accueil démarre une nouvelle partie et rend le Joker.
+ 
+-Le niveau se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisé sur le téléphone.
++La phase se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisée sur le téléphone.
+ La comparaison ignore majuscules, accents, ponctuation, espaces, "the/a/an" au début, et tolère une petite faute de frappe.
+-Le bonus et le malus par défaut (+2 / −2 cases) se modifient dans `content/game.json`. Pour une case précise, ajouter `"bonus"` et/ou `"malus"` à cette case dans `content/tiles.json` (ex. `"bonus": "Roll the dice again."`).
++Les messages affichés après la réponse se modifient dans `content/game.json`.
+ 
+ ## Mise en ligne (comme crazydev)
+ 
+diff --git a/assets/level.js b/assets/level.js
+deleted file mode 100644
+index f9ecec3..0000000
+--- a/assets/level.js
++++ /dev/null
+@@ -1,104 +0,0 @@
+-/* GreenFlag - game level (Easy / Hard) and the Hard level quiz.
+-   Easy: word + definition on the board, the site gives explanations (works without JavaScript).
+-   Hard: only the definition is on the board; on the tile page the player types the word. */
+-(function () {
+-  "use strict";
+-  var KEY = "greenflag-level";
+-  var root = document.documentElement;
+-
+-  function getLevel() {
+-    try { return localStorage.getItem(KEY); } catch (err) { return null; }
+-  }
+-  function setLevel(level) {
+-    try { localStorage.setItem(KEY, level); } catch (err) { /* private mode: level kept for this page only */ }
+-    root.setAttribute("data-level", level);
+-  }
+-
+-  // A link such as contents.html?level=hard chooses the level.
+-  var fromUrl = new URLSearchParams(location.search).get("level");
+-  if (fromUrl === "easy" || fromUrl === "hard") setLevel(fromUrl);
+-  else root.setAttribute("data-level", getLevel() || "unset");
+-
+-  /* ---------- Tolerant answer check ---------- */
+-  function normalize(s) {
+-    s = s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+-    s = s.replace(/['’`]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+-    return s.replace(/^(the|a|an) /, "");
+-  }
+-  function distance(a, b) {
+-    var prev = [], cur, i, j;
+-    for (j = 0; j <= b.length; j++) prev[j] = j;
+-    for (i = 1; i <= a.length; i++) {
+-      cur = [i];
+-      for (j = 1; j <= b.length; j++) {
+-        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+-      }
+-      prev = cur;
+-    }
+-    return prev[b.length];
+-  }
+-  function isCorrect(given, answers) {
+-    var g = normalize(given), gs = g.replace(/ /g, "");
+-    if (!g) return false;
+-    return answers.some(function (ans) {
+-      var a = normalize(ans), as = a.replace(/ /g, "");
+-      if (g === a || gs === as) return true;
+-      // Small typos are fine: 1 letter for words of 5+ letters, 2 letters for 10+.
+-      var allowed = as.length >= 10 ? 2 : as.length >= 5 ? 1 : 0;
+-      return allowed > 0 && distance(gs, as) <= allowed;
+-    });
+-  }
+-
+-  /* ---------- Page behaviour ---------- */
+-  function init() {
+-    // Level switch buttons (home, contents, tile pages)
+-    Array.prototype.forEach.call(document.querySelectorAll("[data-set-level]"), function (btn) {
+-      btn.addEventListener("click", function (ev) {
+-        var level = btn.getAttribute("data-set-level");
+-        setLevel(level);
+-        if (btn.tagName === "BUTTON") { ev.preventDefault(); resetQuiz(); }
+-      });
+-    });
+-
+-    var quiz = document.getElementById("quiz");
+-    if (!quiz) return;
+-    var pageTitle = document.title;
+-    var form = quiz.querySelector("form");
+-    var input = quiz.querySelector("input");
+-    var result = quiz.querySelector(".quiz-result");
+-    var answers = JSON.parse(quiz.getAttribute("data-answers"));
+-
+-    function hideTitle() {
+-      // Do not give the answer away in the browser tab.
+-      if (root.getAttribute("data-level") !== "easy" && !root.classList.contains("quiz-done")) {
+-        document.title = quiz.getAttribute("data-tab-title");
+-      } else {
+-        document.title = pageTitle;
+-      }
+-    }
+-    window.resetQuizTitle = hideTitle;
+-    hideTitle();
+-
+-    form.addEventListener("submit", function (ev) {
+-      ev.preventDefault();
+-      if (!input.value.trim()) { input.focus(); return; }
+-      var ok = isCorrect(input.value, answers);
+-      input.disabled = true;
+-      form.querySelector("button").disabled = true;
+-      result.className = "quiz-result " + (ok ? "is-right" : "is-wrong");
+-      var tpl = quiz.querySelector(ok ? "template.quiz-right" : "template.quiz-wrong");
+-      result.innerHTML = "";
+-      result.appendChild(tpl.content.cloneNode(true));
+-      result.hidden = false;
+-      root.classList.add("quiz-done");
+-      hideTitle();
+-      result.focus();
+-    });
+-  }
+-  function resetQuiz() {
+-    if (window.resetQuizTitle) window.resetQuizTitle();
+-  }
+-
+-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+-  else init();
+-})();
+diff --git a/assets/phase.js b/assets/phase.js
+new file mode 100644
+index 0000000..6009035
+--- /dev/null
++++ b/assets/phase.js
+@@ -0,0 +1,130 @@
++/* GreenFlag - game phase (Phase 1 / Phase 2), the Phase 2 quiz and the Joker.
++   Phase 1: words + definitions on the board, the site gives explanations (works without JavaScript).
++   Phase 2: the board is flipped, only the definitions are shown; on the tile page the player types
++   the word. Right word on a bonus tile = bonus, on a penalty tile = penalty avoided.
++   Joker: won by the first player to finish phase 1, one per game, remembered on this phone. */
++(function () {
++  "use strict";
++  var PHASE_KEY = "greenflag-phase";
++  var JOKER_KEY = "greenflag-joker-used";
++  var root = document.documentElement;
++
++  function load(key) {
++    try { return localStorage.getItem(key); } catch (err) { return null; }
++  }
++  function save(key, value) {
++    try {
++      if (value === null) localStorage.removeItem(key);
++      else localStorage.setItem(key, value);
++    } catch (err) { /* private mode: kept for this page only */ }
++  }
++  function setPhase(phase) {
++    save(PHASE_KEY, phase);
++    root.setAttribute("data-phase", phase);
++  }
++  function jokerUsed() { return load(JOKER_KEY) === "1"; }
++  function showJoker() { root.classList.toggle("joker-used", jokerUsed()); }
++
++  // A link such as contents.html?phase=2 chooses the phase. ?new=1 starts a new game (Joker back).
++  var params = new URLSearchParams(location.search);
++  if (params.get("new") === "1") save(JOKER_KEY, null);
++  var fromUrl = params.get("phase");
++  if (fromUrl === "1" || fromUrl === "2") setPhase(fromUrl);
++  else root.setAttribute("data-phase", load(PHASE_KEY) || "unset");
++  showJoker();
++
++  /* ---------- Tolerant answer check ---------- */
++  function normalize(s) {
++    s = s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
++    s = s.replace(/['’`]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
++    return s.replace(/^(the|a|an) /, "");
++  }
++  function distance(a, b) {
++    var prev = [], cur, i, j;
++    for (j = 0; j <= b.length; j++) prev[j] = j;
++    for (i = 1; i <= a.length; i++) {
++      cur = [i];
++      for (j = 1; j <= b.length; j++) {
++        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
++      }
++      prev = cur;
++    }
++    return prev[b.length];
++  }
++  function isCorrect(given, answers) {
++    var g = normalize(given), gs = g.replace(/ /g, "");
++    if (!g) return false;
++    return answers.some(function (ans) {
++      var a = normalize(ans), as = a.replace(/ /g, "");
++      if (g === a || gs === as) return true;
++      // Small typos are fine: 1 letter for words of 5+ letters, 2 letters for 10+.
++      var allowed = as.length >= 10 ? 2 : as.length >= 5 ? 1 : 0;
++      return allowed > 0 && distance(gs, as) <= allowed;
++    });
++  }
++
++  /* ---------- Page behaviour ---------- */
++  var updateTitle = function () {};
++
++  function init() {
++    // Phase buttons and links (home, contents, tile pages)
++    Array.prototype.forEach.call(document.querySelectorAll("[data-set-phase]"), function (el) {
++      el.addEventListener("click", function (ev) {
++        setPhase(el.getAttribute("data-set-phase"));
++        if (el.tagName === "BUTTON") { ev.preventDefault(); updateTitle(); }
++      });
++    });
++    // "Give the Joker back" (contents page): new game on this phone
++    Array.prototype.forEach.call(document.querySelectorAll("[data-reset-joker]"), function (btn) {
++      btn.addEventListener("click", function () { save(JOKER_KEY, null); showJoker(); });
++    });
++
++    var quiz = document.getElementById("quiz");
++    if (!quiz) return;
++    var pageTitle = document.title;
++    var form = quiz.querySelector("form");
++    var input = quiz.querySelector("input");
++    var result = quiz.querySelector(".quiz-result");
++    var jokerBtn = quiz.querySelector(".joker-button");
++    var answers = JSON.parse(quiz.getAttribute("data-answers"));
++
++    updateTitle = function () {
++      // Do not give the answer away in the browser tab.
++      var hide = root.getAttribute("data-phase") !== "1" && !root.classList.contains("quiz-done");
++      document.title = hide ? quiz.getAttribute("data-tab-title") : pageTitle;
++    };
++    updateTitle();
++
++    function show(kind) {
++      input.disabled = true;
++      form.querySelector("button").disabled = true;
++      result.className = "quiz-result is-" + kind;
++      result.innerHTML = "";
++      result.appendChild(quiz.querySelector("template.quiz-" + kind).content.cloneNode(true));
++      result.hidden = false;
++      root.classList.add("quiz-done");
++      quiz.classList.toggle("can-use-joker", kind === "wrong");
++      updateTitle();
++      result.focus();
++    }
++
++    form.addEventListener("submit", function (ev) {
++      ev.preventDefault();
++      if (!input.value.trim()) { input.focus(); return; }
++      show(isCorrect(input.value, answers) ? "right" : "wrong");
++    });
++
++    if (jokerBtn) {
++      jokerBtn.addEventListener("click", function () {
++        if (jokerUsed()) return;
++        save(JOKER_KEY, "1");
++        showJoker();
++        quiz.classList.remove("can-use-joker");
++        show("joker");
++      });
++    }
++  }
++
++  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
++  else init();
++})();
+diff --git a/assets/style.css b/assets/style.css
+index 00cba94..a5e59fa 100644
+--- a/assets/style.css
++++ b/assets/style.css
+@@ -158,36 +158,36 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
+   .site-footer { padding: 16px; font-size: 0.8rem; }
+ }
+ 
+-/* ---------- Game levels (Easy / Hard) ----------
+-   data-level on <html> is set by assets/level.js: easy, hard or unset.
+-   Without JavaScript there is no data-level and the site behaves like the Easy level. */
+-.level-switch, .hard-only, .toc-definition, .quiz { display: none; }
+-[data-level] .level-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+-.level-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+-.level-prompt { display: none; width: 100%; font-weight: 700; }
+-.level-switch button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 18px; border-radius: 999px; cursor: pointer;
++/* ---------- Game phases (Phase 1 / Phase 2) ----------
++   data-phase on <html> is set by assets/phase.js: 1, 2 or unset.
++   Without JavaScript there is no data-phase and the site behaves like phase 1. */
++.phase-switch, .phase2-only, .toc-definition, .quiz { display: none; }
++[data-phase] .phase-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
++.phase-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
++.phase-prompt { display: none; width: 100%; font-weight: 700; }
++.phase-switch button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 18px; border-radius: 999px; cursor: pointer;
+   border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+-[data-level="easy"] .level-switch [data-set-level="easy"],
+-[data-level="hard"] .level-switch [data-set-level="hard"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+-
+-/* Tile page, level not chosen yet (e.g. first QR scan): ask before showing anything */
+-[data-level="unset"] .has-quiz .level-switch { padding: 14px; background: var(--surface); border: 2px solid var(--brand); border-radius: var(--radius); }
+-[data-level="unset"] .has-quiz .level-prompt { display: block; }
+-[data-level="unset"] .has-quiz .level-label { display: none; }
+-[data-level="unset"] .has-quiz .level-switch button { flex: 1; min-height: 48px; }
+-[data-level="unset"] .has-quiz .tile-reveal { display: none; }
+-
+-/* Hard level */
+-[data-level="hard"] .hard-only { display: block; }
+-[data-level="hard"] .quiz { display: block; border: 2px solid var(--brand); }
+-[data-level="hard"]:not(.quiz-done) .has-quiz .tile-reveal { display: none; }
+-[data-level="hard"] .board-text { display: none; }
+-[data-level="hard"] .toc-title.has-def { display: none; }
+-[data-level="hard"] .toc-definition { display: block; font-size: 0.92rem; }
+-[data-level="hard"] .toc-row .toc-summary { display: none; }
+-[data-level="hard"] .toc-row .toc-title:not(.has-def) + .toc-summary { display: block; }
+-
+-.quiz h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
++[data-phase="1"] .phase-switch [data-set-phase="1"],
++[data-phase="2"] .phase-switch [data-set-phase="2"] { background: var(--brand); border-color: var(--brand); color: #fff; }
++
++/* Tile page, phase not chosen yet (e.g. first QR scan): ask before showing anything */
++[data-phase="unset"] .has-quiz .phase-switch { padding: 14px; background: var(--surface); border: 2px solid var(--brand); border-radius: var(--radius); }
++[data-phase="unset"] .has-quiz .phase-prompt { display: block; }
++[data-phase="unset"] .has-quiz .phase-label { display: none; }
++[data-phase="unset"] .has-quiz .phase-switch button { flex: 1; min-height: 48px; }
++[data-phase="unset"] .has-quiz .tile-reveal { display: none; }
++
++/* Phase 2 */
++[data-phase="2"] .phase2-only { display: block; }
++[data-phase="2"] .quiz { display: block; border: 2px solid var(--brand); }
++[data-phase="2"]:not(.quiz-done) .has-quiz .tile-reveal { display: none; }
++[data-phase="2"] .board-text { display: none; }
++[data-phase="2"] .toc-title.has-def { display: none; }
++[data-phase="2"] .toc-definition { display: block; font-size: 0.92rem; }
++[data-phase="2"] .toc-row .toc-summary { display: none; }
++[data-phase="2"] .toc-row .toc-title:not(.has-def) + .toc-summary { display: block; }
++
++.quiz h2 { font-size: 1rem; color: var(--muted); }
+ .quiz-def { font-size: 1.15rem; font-weight: 600; margin: 0 0 14px; }
+ .quiz-form label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+ .quiz-row { display: flex; gap: 8px; }
+@@ -201,12 +201,25 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
+ .quiz-result p { margin: 0; }
+ .quiz-result p + p { margin-top: 4px; }
+ .quiz-result:focus { outline: none; }
+-.quiz-result.is-right { background: var(--good-bg); color: var(--text); border-left: 4px solid var(--good); }
++.quiz-result.is-right, .quiz-result.is-joker { background: var(--good-bg); color: var(--text); border-left: 4px solid var(--good); }
++.quiz-result.is-joker { background: var(--finish-bg); border-left-color: var(--finish); }
+ .quiz-result.is-wrong { background: var(--bad-bg); color: var(--text); border-left: 4px solid var(--bad); }
+ .quiz-verdict { font-weight: 700; }
+-.quiz-order { font-size: 0.85rem; color: var(--muted); margin: 12px 0 0; }
+ 
+-/* Home page: level choice */
++/* Joker: shown before answering or after a wrong answer, hidden once used in this game */
++.joker { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
++.joker-button { font: inherit; font-weight: 700; min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer;
++  background: var(--finish-bg); color: var(--finish); border: 2px solid var(--finish); }
++.joker-help { font-size: 0.82rem; color: var(--muted); margin: 6px 0 0; }
++.joker-gone { display: none; font-size: 0.82rem; color: var(--muted); margin: 12px 0 0; }
++.quiz-done .quiz:not(.can-use-joker) .joker { display: none; }
++.joker-used .joker { display: none !important; }
++.joker-used:not(.quiz-done) .joker-gone { display: block; }
++.joker-status .joker-spent, .joker-used .joker-status .joker-free { display: none; }
++.joker-used .joker-status .joker-spent { display: inline; }
++.link-button { font: inherit; color: var(--brand-dark); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
++
++/* Home page: phase choice */
+ .home-start { margin: 24px 0 10px; font-size: 1.2rem; }
+ .levels { display: grid; gap: 12px; text-align: left; }
+ .level-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: var(--radius); text-decoration: none;
+diff --git a/build.py b/build.py
+index 8bdf3d3..bbcf09d 100644
+--- a/build.py
++++ b/build.py
+@@ -21,7 +21,7 @@ ROOT = Path(__file__).parent
+ DIST = ROOT / "dist"
+ SITE_NAME = "GreenFlag"
+ GAME = json.loads((ROOT / "content" / "game.json").read_text(encoding="utf-8"))
+-HARD = GAME["hard"]
++PHASE2 = GAME["phase2"]
+ 
+ 
+ def asset_version():
+@@ -49,7 +49,7 @@ def page(title, body, depth=0, show_checks=True):
+ <meta name="description" content="GreenFlag: a board game about Green IT and eco-design. Detailed explanations of every tile.">
+ <title>{e(title)} | {SITE_NAME}</title>
+ <link rel="stylesheet" href="{prefix}assets/style.css?v={VERSION}">
+-<script src="{prefix}assets/level.js?v={VERSION}"></script>
++<script src="{prefix}assets/phase.js?v={VERSION}"></script>
+ <link rel="icon" href="{prefix}assets/flag.svg" type="image/svg+xml">
+ </head>
+ <body{body_class}>
+@@ -72,11 +72,11 @@ def page(title, body, depth=0, show_checks=True):
+ """
+ 
+ 
+-LEVEL_SWITCH = """<div class="level-switch" role="group" aria-label="Game level">
+-  <span class="level-prompt">Which level are you playing?</span>
+-  <span class="level-label">Level</span>
+-  <button type="button" data-set-level="easy">Easy</button>
+-  <button type="button" data-set-level="hard">Hard</button>
++PHASE_SWITCH = """<div class="phase-switch" role="group" aria-label="Game phase">
++  <span class="phase-prompt">Which phase are you playing?</span>
++  <span class="phase-label">Phase</span>
++  <button type="button" data-set-phase="1">Phase 1</button>
++  <button type="button" data-set-phase="2">Phase 2</button>
+ </div>"""
+ 
+ 
+@@ -111,24 +111,36 @@ def render_section(s):
+ 
+ 
+ def quiz_html(t):
+-    """Hard level: the definition is shown and the player must type the word."""
++    """Phase 2: the definition is shown and the player must type the word."""
+     if not t.get("definition"):
+         return ""
+     answers = [t["title"]] + t.get("answers", [])
++    word = f"<strong>{e(t['title'])}</strong>"
++    effect = t.get("effect", "")
++    effect = effect[:1].lower() + effect[1:]
++
++    def msg(key):
++        return e(PHASE2[key]).replace("{effect}", e(effect))
++
+     if t["type"] == "finish":
+-        right = wrong = f'<p class="quiz-effect">{e(HARD["finish"])}</p>'
+-        order = ""
++        right = wrong = joker = f'<p class="quiz-effect">{msg("finish")}</p>'
++        joker_btn = ""
+     else:
+-        # A tile can override the default bonus/malus of content/game.json with its own "bonus"/"malus"
+-        right = f'<p class="quiz-effect"><strong>Bonus:</strong> {e(t.get("bonus") or HARD["bonus"])}</p>'
+-        wrong = f'<p class="quiz-effect"><strong>Malus:</strong> {e(t.get("malus") or HARD["malus"])}</p>'
+-        order = f'<p class="quiz-order">{e(HARD["order"])}</p>'
+-    word = f"<strong>{e(t['title'])}</strong>"
++        kind = "good" if t["type"] == "good" else "bad"
++        right = f'<p class="quiz-effect">{msg(kind + "_right")}</p>'
++        wrong = f'<p class="quiz-effect">{msg(kind + "_wrong")}</p>'
++        joker = f'<p class="quiz-effect">{msg("joker_" + kind)}</p>'
++        joker_btn = """<div class="joker">
++      <button type="button" class="joker-button">Use the Joker</button>
++      <p class="joker-help">Only for the player who won the Joker in phase 1. It works once per game, even without the word.</p>
++    </div>
++    <p class="joker-gone">The Joker has already been used in this game.</p>"""
++    stake = {"good": "Find the word to get the bonus.", "bad": "Find the word to avoid the penalty."}.get(t["type"], "Find the word.")
+     return f"""<section id="quiz" class="quiz block" data-answers="{e(json.dumps(answers, ensure_ascii=False))}" data-tab-title="{e(tile_label(t))} | {SITE_NAME}">
+-    <h2>Hard level: find the word</h2>
++    <h2>Phase 2: {stake}</h2>
+     <p class="quiz-def">{e(t['definition'])}</p>
+     <form class="quiz-form" autocomplete="off">
+-      <label for="answer">Your answer</label>
++      <label for="answer">The word</label>
+       <div class="quiz-row">
+         <input id="answer" name="answer" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" required>
+         <button type="submit">Check</button>
+@@ -137,7 +149,8 @@ def quiz_html(t):
+     <div class="quiz-result" tabindex="-1" aria-live="polite" hidden></div>
+     <template class="quiz-right"><p class="quiz-verdict">Correct! The word was {word}.</p>{right}</template>
+     <template class="quiz-wrong"><p class="quiz-verdict">Not quite. The word was {word}.</p>{wrong}</template>
+-    {order}
++    <template class="quiz-joker"><p class="quiz-verdict">Joker used! The word was {word}.</p>{joker}</template>
++    {joker_btn}
+   </section>"""
+ 
+ 
+@@ -164,7 +177,7 @@ def tile_page(t, by_id, show_checks, prev=None, nxt=None):
+     has_quiz = " has-quiz" if quiz else ""
+     body = f"""
+ <article class="tile tile-{t['type']}{has_quiz}">
+-  {LEVEL_SWITCH if quiz else ""}
++  {PHASE_SWITCH if quiz else ""}
+   <p class="tile-number">{tile_label(t)}</p>
+   <h1 class="tile-reveal">{e(t['title'])}</h1>
+   {badge(t)}
+@@ -211,13 +224,13 @@ def home_page(show_checks):
+   <p>Roll the dice, move along 30 tiles and discover the environmental impact of digital technology. Good practices help you move forward, bad practices slow you down. First to reach <strong>Net zero</strong> wins!</p>
+   <h2 class="home-start">Start a game</h2>
+   <div class="levels">
+-    <a class="level-card" href="contents.html?level=easy" data-set-level="easy">
+-      <strong>Easy</strong>
+-      <span>The word and its definition are written on the board. Open a tile here to learn more.</span>
++    <a class="level-card" href="contents.html?phase=1&amp;new=1" data-set-phase="1">
++      <strong>Phase 1: Discovery</strong>
++      <span>Words and definitions are on the board. Do what each tile says and memorize its word.</span>
+     </a>
+-    <a class="level-card level-card-hard" href="contents.html?level=hard" data-set-level="hard">
+-      <strong>Hard</strong>
+-      <span>Only the definition is on the board. Open the tile here and type the word: right answer = bonus, wrong answer = malus.</span>
++    <a class="level-card level-card-hard" href="contents.html?phase=2" data-set-phase="2">
++      <strong>Phase 2: Memory</strong>
++      <span>Board flipped: only definitions. Type the word here to get the bonus or avoid the penalty.</span>
+     </a>
+   </div>
+   <p class="home-links"><a href="rules.html">How to play</a> &middot; <a href="about.html">About</a></p>
+@@ -232,9 +245,10 @@ def index_page(tiles, show_checks):
+     body = f"""
+ <section class="hero">
+   <h1>Contents</h1>
+-  {LEVEL_SWITCH}
++  {PHASE_SWITCH}
+   <p>Landed on a coloured tile? Find its number below (or scan its QR code), check its effect and open it to read the detailed explanation.</p>
+-  <p class="hard-only">Hard level: open the tile, read the definition again and type the matching word.</p>
++  <p class="phase2-only">Phase 2: open the tile, read the definition and type the word you memorized. Right word: you get the bonus or avoid the penalty.</p>
++  <p class="phase2-only joker-status"><span class="joker-free">Joker: not used yet in this game.</span><span class="joker-spent">Joker: already used in this game. <button type="button" class="link-button" data-reset-joker>New game? Give it back</button></span></p>
+   <p class="legend"><span class="badge badge-good">Good practice</span> <span class="badge badge-bad">Bad practice</span> <span class="badge badge-finish">Finish</span></p>
+ </section>
+ <h2 class="toc-heading">The board, tile by tile</h2>
+@@ -253,7 +267,7 @@ RULES = """
+ </section>
+ <section class="block">
+ <h2>Equipment</h2>
+-<ul><li>1 board (30 tiles)</li><li>1 dice</li><li>1 pawn per player (2 to 4 players)</li></ul>
++<ul><li>1 double-sided board (30 tiles): words and definitions on one side for phase 1, only definitions on the other side for phase 2</li><li>1 dice</li><li>1 pawn per player (2 to 4 players)</li></ul>
+ </section>
+ <section class="block">
+ <h2>Setup (first 5 minutes)</h2>
+@@ -264,17 +278,26 @@ RULES = """
+ </ol>
+ </section>
+ <section class="block">
+-<h2>Two levels</h2>
+-<ul>
+-<li><strong>Easy</strong>: the word and its definition are written on each coloured tile. Use this website to learn more about them.</li>
+-<li><strong>Hard</strong>: only the definition is written on the tile. Scan the tile (or find its number in the Contents), read the definition and type the matching word.
++<h2>First phase: discovery and memorization</h2>
++<p>When a player lands on a bonus or penalty tile, they must do the action written on that tile. They must also try to memorize the words of these tiles: they will be useful during the second phase.</p>
++</section>
++<section class="block">
++<h2>Transition to the second phase</h2>
++<p>The first player to reach the end of the first phase earns a <strong>Joker</strong> for the second phase. Once the first phase is over, flip the board over to begin the second phase: only the definitions are written on it.</p>
++</section>
++<section class="block">
++<h2>Second phase: memory and strategy</h2>
++<p>When a player lands on a bonus or penalty tile, they scan the tile (or find its number in the Contents) and type the word memorized during the first phase.</p>
+ <ul>
+-<li>Right answer: <strong>bonus</strong>, {bonus}</li>
+-<li>Wrong answer: <strong>malus</strong>, {malus}</li>
+-<li>You only get one try. Capital letters, accents and small typos do not matter.</li>
+-<li>{order}</li>
+-</ul></li>
++<li><span class="badge badge-bad">Penalty tile</span> Right word: you avoid the penalty. Wrong word: you do the action written on the tile.</li>
++<li><span class="badge badge-good">Bonus tile</span> Right word: you get the advantage written on the tile. Wrong word: you cannot use it.</li>
++<li>One try only. Capital letters, accents and small typos do not matter.</li>
+ </ul>
++<p>The goal is to use your memory to avoid penalties and get advantages, so you move faster through the game.</p>
++</section>
++<section class="block">
++<h2>The Joker</h2>
++<p>The Joker can be used once, on a bonus or a penalty tile: it cancels a penalty or activates a bonus, even if you cannot remember the word. On the website, press <strong>Use the Joker</strong> on the tile page (before answering, or just after a wrong answer).</p>
+ </section>
+ <section class="block">
+ <h2>A turn</h2>
+@@ -283,7 +306,7 @@ RULES = """
+ <li>If you land on a coloured tile, read it aloud and apply its effect.</li>
+ <li><span class="badge badge-good">Good practice</span> tiles help you (move again, jump forward).</li>
+ <li><span class="badge badge-bad">Bad practice</span> tiles slow you down (go back, miss a turn, stay stuck).</li>
+-<li>Hard level: scan the tile and find the word to win a bonus (see "Two levels").</li>
++<li>Second phase: scan the tile and type its word before applying the effect (see below).</li>
+ <li>Want to know more? Scan the QR code of the tile or find it on this website.</li>
+ </ol>
+ </section>
+@@ -301,7 +324,7 @@ RULES = """
+ </section>
+ <section class="block">
+ <h2>End of the game</h2>
+-<p>The first player to land exactly on tile 30 wins. Everyone else wins some knowledge about Green IT!</p>
++<p>The first player to land exactly on tile 30 during the second phase wins. Everyone else wins some knowledge about Green IT!</p>
+ </section>
+ """
+ 
+@@ -324,7 +347,7 @@ ABOUT = """
+ </section>
+ <section class="block">
+ <h2>About this website</h2>
+-<p>This site practises what it teaches: static pages, no tracker, no external font, very light. The only JavaScript is a tiny script (a few KB) for the Hard level quiz; everything else works without it.</p>
++<p>This site practises what it teaches: static pages, no tracker, no external font, very light. The only JavaScript is a tiny script (a few KB) for the phase 2 quiz and the Joker; everything else works without it.</p>
+ </section>
+ """
+ 
+@@ -347,7 +370,7 @@ def build_qr(tiles, base_url, show_checks):
+         img.save(str(qr_dir / f"{n:02d}-{t['id']}.svg"))
+         items.append(f"""<li class="print-card card-{t['type']}">
+   <img src="qr/{n:02d}-{t['id']}.svg" alt="QR code">
+-  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}{'<br><em>Hard level:</em> ' + e(t['definition']) if t.get('definition') else ''}<br><small>{e(url)}</small></div>
++  <div><strong>Tile {n}: {e(t['title'])}</strong> {badge(t)}<br>{e(t['board'])}{'<br><em>Phase 2 side:</em> ' + e(t['definition']) if t.get('definition') else ''}<br><small>{e(url)}</small></div>
+ </li>""")
+     body = '<h1>Printable tiles with QR codes</h1><p class="no-print">Print this page (Ctrl+P) to get the texts and QR codes for the board and cards.</p><ul class="print-list">' + "".join(items) + "</ul>"
+     (DIST / "print.html").write_text(page("Print", body, show_checks=show_checks), encoding="utf-8")
+@@ -379,8 +402,7 @@ def main():
+         (DIST / "tiles" / f"{t['id']}.html").write_text(tile_page(t, by_id, show, prev, nxt), encoding="utf-8")
+     (DIST / "index.html").write_text(home_page(show), encoding="utf-8")
+     (DIST / "contents.html").write_text(index_page(tiles, show), encoding="utf-8")
+-    rules = RULES.format(bonus=e(HARD["bonus"].rstrip(".").lower()), malus=e(HARD["malus"].rstrip(".").lower()), order=e(HARD["order"]))
+-    (DIST / "rules.html").write_text(page("How to play", rules, show_checks=show), encoding="utf-8")
++    (DIST / "rules.html").write_text(page("How to play", RULES, show_checks=show), encoding="utf-8")
+     (DIST / "about.html").write_text(page("About", ABOUT, show_checks=show), encoding="utf-8")
+ 
+     if args.base_url:
+diff --git a/content/game.json b/content/game.json
+index 20e9d0f..da6c021 100644
+--- a/content/game.json
++++ b/content/game.json
+@@ -1,9 +1,12 @@
+ {
+-  "_comment": "Hard level settings: default bonus/malus for every tile. A tile can have its own by adding \"bonus\" and/or \"malus\" in content/tiles.json. Then run python3 build.py again.",
+-  "hard": {
+-    "bonus": "Move forward 2 tiles.",
+-    "malus": "Move back 2 tiles.",
+-    "order": "Apply the tile's own effect first, then your bonus or malus. The tile you reach with a bonus or malus has no effect.",
+-    "finish": "You already reached Net zero, so no bonus or malus here. Well played!"
++  "_comment": "Phase 2 messages shown after the player answers. {effect} is replaced by the tile's effect (e.g. 'back to tile 14'). Run python3 build.py again after a change.",
++  "phase2": {
++    "good_right": "You get the bonus: {effect}.",
++    "good_wrong": "No bonus this time: ignore this tile.",
++    "bad_right": "You avoid the penalty ({effect}).",
++    "bad_wrong": "Apply the penalty: {effect}.",
++    "joker_good": "You get the bonus: {effect}.",
++    "joker_bad": "You avoid the penalty ({effect}).",
++    "finish": "You reached Net zero, well played!"
+   }
+ }
+-- 
+2.43.0
+

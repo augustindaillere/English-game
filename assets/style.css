@@ -158,36 +158,36 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
   .site-footer { padding: 16px; font-size: 0.8rem; }
 }
 
-/* ---------- Game levels (Easy / Hard) ----------
-   data-level on <html> is set by assets/level.js: easy, hard or unset.
-   Without JavaScript there is no data-level and the site behaves like the Easy level. */
-.level-switch, .hard-only, .toc-definition, .quiz { display: none; }
-[data-level] .level-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
-.level-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
-.level-prompt { display: none; width: 100%; font-weight: 700; }
-.level-switch button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 18px; border-radius: 999px; cursor: pointer;
+/* ---------- Game phases (Phase 1 / Phase 2) ----------
+   data-phase on <html> is set by assets/phase.js: 1, 2 or unset.
+   Without JavaScript there is no data-phase and the site behaves like phase 1. */
+.phase-switch, .phase2-only, .toc-definition, .quiz { display: none; }
+[data-phase] .phase-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.phase-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.phase-prompt { display: none; width: 100%; font-weight: 700; }
+.phase-switch button { font: inherit; font-weight: 700; min-height: 40px; padding: 6px 18px; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--border); background: var(--surface); color: var(--text); }
-[data-level="easy"] .level-switch [data-set-level="easy"],
-[data-level="hard"] .level-switch [data-set-level="hard"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+[data-phase="1"] .phase-switch [data-set-phase="1"],
+[data-phase="2"] .phase-switch [data-set-phase="2"] { background: var(--brand); border-color: var(--brand); color: #fff; }
 
-/* Tile page, level not chosen yet (e.g. first QR scan): ask before showing anything */
-[data-level="unset"] .has-quiz .level-switch { padding: 14px; background: var(--surface); border: 2px solid var(--brand); border-radius: var(--radius); }
-[data-level="unset"] .has-quiz .level-prompt { display: block; }
-[data-level="unset"] .has-quiz .level-label { display: none; }
-[data-level="unset"] .has-quiz .level-switch button { flex: 1; min-height: 48px; }
-[data-level="unset"] .has-quiz .tile-reveal { display: none; }
+/* Tile page, phase not chosen yet (e.g. first QR scan): ask before showing anything */
+[data-phase="unset"] .has-quiz .phase-switch { padding: 14px; background: var(--surface); border: 2px solid var(--brand); border-radius: var(--radius); }
+[data-phase="unset"] .has-quiz .phase-prompt { display: block; }
+[data-phase="unset"] .has-quiz .phase-label { display: none; }
+[data-phase="unset"] .has-quiz .phase-switch button { flex: 1; min-height: 48px; }
+[data-phase="unset"] .has-quiz .tile-reveal { display: none; }
 
-/* Hard level */
-[data-level="hard"] .hard-only { display: block; }
-[data-level="hard"] .quiz { display: block; border: 2px solid var(--brand); }
-[data-level="hard"]:not(.quiz-done) .has-quiz .tile-reveal { display: none; }
-[data-level="hard"] .board-text { display: none; }
-[data-level="hard"] .toc-title.has-def { display: none; }
-[data-level="hard"] .toc-definition { display: block; font-size: 0.92rem; }
-[data-level="hard"] .toc-row .toc-summary { display: none; }
-[data-level="hard"] .toc-row .toc-title:not(.has-def) + .toc-summary { display: block; }
+/* Phase 2 */
+[data-phase="2"] .phase2-only { display: block; }
+[data-phase="2"] .quiz { display: block; border: 2px solid var(--brand); }
+[data-phase="2"]:not(.quiz-done) .has-quiz .tile-reveal { display: none; }
+[data-phase="2"] .board-text { display: none; }
+[data-phase="2"] .toc-title.has-def { display: none; }
+[data-phase="2"] .toc-definition { display: block; font-size: 0.92rem; }
+[data-phase="2"] .toc-row .toc-summary { display: none; }
+[data-phase="2"] .toc-row .toc-title:not(.has-def) + .toc-summary { display: block; }
 
-.quiz h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.quiz h2 { font-size: 1rem; color: var(--muted); }
 .quiz-def { font-size: 1.15rem; font-weight: 600; margin: 0 0 14px; }
 .quiz-form label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
 .quiz-row { display: flex; gap: 8px; }
@@ -201,12 +201,25 @@ h2 { font-size: 1.15rem; margin: 0 0 0.5em; }
 .quiz-result p { margin: 0; }
 .quiz-result p + p { margin-top: 4px; }
 .quiz-result:focus { outline: none; }
-.quiz-result.is-right { background: var(--good-bg); color: var(--text); border-left: 4px solid var(--good); }
+.quiz-result.is-right, .quiz-result.is-joker { background: var(--good-bg); color: var(--text); border-left: 4px solid var(--good); }
+.quiz-result.is-joker { background: var(--finish-bg); border-left-color: var(--finish); }
 .quiz-result.is-wrong { background: var(--bad-bg); color: var(--text); border-left: 4px solid var(--bad); }
 .quiz-verdict { font-weight: 700; }
-.quiz-order { font-size: 0.85rem; color: var(--muted); margin: 12px 0 0; }
 
-/* Home page: level choice */
+/* Joker: shown before answering or after a wrong answer, hidden once used in this game */
+.joker { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.joker-button { font: inherit; font-weight: 700; min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer;
+  background: var(--finish-bg); color: var(--finish); border: 2px solid var(--finish); }
+.joker-help { font-size: 0.82rem; color: var(--muted); margin: 6px 0 0; }
+.joker-gone { display: none; font-size: 0.82rem; color: var(--muted); margin: 12px 0 0; }
+.quiz-done .quiz:not(.can-use-joker) .joker { display: none; }
+.joker-used .joker { display: none !important; }
+.joker-used:not(.quiz-done) .joker-gone { display: block; }
+.joker-status .joker-spent, .joker-used .joker-status .joker-free { display: none; }
+.joker-used .joker-status .joker-spent { display: inline; }
+.link-button { font: inherit; color: var(--brand-dark); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+/* Home page: phase choice */
 .home-start { margin: 24px 0 10px; font-size: 1.2rem; }
 .levels { display: grid; gap: 12px; text-align: left; }
 .level-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: var(--radius); text-decoration: none;

@@ -1,7 +1,7 @@
 # GreenFlag, site compagnon (V1)
 
 Site statique en anglais, aligné sur le plateau de 30 cases : une page d'accueil avec le bouton "Start a game", un sommaire (contents.html), une page par case colorée (13), 5 pages "Go further", une page "How to play" et une page "About".
-Pas de base de données, pas de dépendance externe, un seul petit script JavaScript (`assets/level.js`) pour le niveau difficile (environ 400 Ko au total).
+Pas de base de données, pas de dépendance externe, un seul petit script JavaScript (`assets/phase.js`) pour la phase 2 et le Joker (environ 400 Ko au total).
 
 ## Structure
 
@@ -37,20 +37,22 @@ Dans `content/tiles.json`, chaque case a :
 - `type` : `good`, `bad` ou `finish` ; `effect` : l'effet écrit sur la case ("Double your move", "Back to tile 14"...)
 - `board` : la phrase courte imprimée sur le plateau
 - `intro`, `sections` (avec `text`, `facts` ou `list`), `related`, `sources`
-- `definition` : la définition seule, imprimée sur le plateau en niveau difficile (ne doit pas contenir le mot)
-- `answers` : les autres réponses acceptées en niveau difficile (synonymes, sigles). Le titre est toujours accepté.
+- `definition` : la définition seule, imprimée sur la face phase 2 du plateau (ne doit pas contenir le mot)
+- `answers` : les autres réponses acceptées en phase 2 (synonymes, sigles). Le titre est toujours accepté.
 - `"check": true` sur un chiffre = à vérifier (affiche une étiquette jaune "to verify")
 
 Puis relancer `python3 build.py`.
 
-## Niveaux de jeu
+## Phases de jeu
 
-- **Easy** : le mot et sa définition sont écrits sur le plateau, le site sert aux explications (fonctionne aussi sans JavaScript).
-- **Hard** : seule la définition est sur le plateau. Sur la page de la case, le joueur relit la définition et tape le mot. Bonne réponse = bonus, mauvaise = malus, un seul essai.
+- **Phase 1 (découverte)** : mots et définitions sur le plateau, on applique l'effet des cases et on mémorise les mots. Le site sert aux explications (fonctionne aussi sans JavaScript).
+- **Phase 2 (mémoire)** : plateau retourné, seules les définitions sont visibles. Sur la page de la case, le joueur tape le mot (un seul essai).
+  Case bonus : bon mot = bonus, sinon rien. Case malus : bon mot = malus évité, sinon on l'applique.
+- **Joker** : gagné par le premier à finir la phase 1. Bouton "Use the Joker" sur la page de la case (avant de répondre ou juste après une erreur), une fois par partie, mémorisé sur le téléphone. Choisir "Phase 1" sur l'accueil démarre une nouvelle partie et rend le Joker.
 
-Le niveau se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisé sur le téléphone.
+La phase se choisit sur l'accueil (ou sur la page d'une case au premier scan d'un QR code) et reste mémorisée sur le téléphone.
 La comparaison ignore majuscules, accents, ponctuation, espaces, "the/a/an" au début, et tolère une petite faute de frappe.
-Le bonus et le malus par défaut (+2 / −2 cases) se modifient dans `content/game.json`. Pour une case précise, ajouter `"bonus"` et/ou `"malus"` à cette case dans `content/tiles.json` (ex. `"bonus": "Roll the dice again."`).
+Les messages affichés après la réponse se modifient dans `content/game.json`.
 
 ## Mise en ligne (comme crazydev)
 

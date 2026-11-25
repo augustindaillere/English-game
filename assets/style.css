@@ -22,7 +22,7 @@
   --text: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --board: "Kalam", "Comic Sans MS", cursive;
   --radius: 22px;
-  --max: 560px;
+  --max: 392px;   /* content column; with the 24px gutters the site is 440px wide max, like the mockup */
   --tabbar: 64px;
 }
 
@@ -47,7 +47,7 @@ p { margin: 0 0 .8em; }
 .hero { background-color: var(--green-dark); background-image: url("img/pattern/goose-pattern-tile.svg");
   background-repeat: repeat; background-size: 38px 46px; border-radius: 0 0 36px 36px; overflow: hidden; color: var(--white); }
 .hero-illustrated { display: flex; justify-content: center; }
-.hero-illustration { display: block; width: 100%; max-width: 390px; }
+.hero-illustration { display: block; width: 100%; }
 
 .hero-tile { padding: 16px 24px 26px; padding-top: max(16px, env(safe-area-inset-top)); }
 .hero-inner { max-width: var(--max); margin: 0 auto; }
@@ -222,8 +222,10 @@ main { max-width: var(--max); margin: 0 auto; padding: 22px 24px 8px; }
 .tabbar a .icon { width: 18px; height: 18px; }
 .tabbar a[aria-current="page"] { background: var(--yellow); color: var(--green-dark); }
 
-@media (min-width: 700px) {
+/* Bigger screens: the whole site stays an app-like column, hero included */
+@media (min-width: 441px) {
   body { font-size: 16px; }
-  .hero-illustrated { padding-top: 10px; }
+  .hero { max-width: calc(var(--max) + 48px); margin: 0 auto; }
+  .hero-illustrated { margin-top: 16px; border-radius: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

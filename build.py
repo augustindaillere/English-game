@@ -8,6 +8,7 @@ Content lives in content/tiles.json. Styles live in assets/style.css,
 images in assets/img/, icons in assets/icons/, fonts in assets/fonts/.
 Only the Python standard library is needed.
 """
+import hashlib
 import html
 import json
 import re
@@ -19,6 +20,10 @@ DIST = ROOT / "dist"
 SITE_NAME = "GreenFlag"
 
 e = html.escape
+
+# Version of the stylesheet, added to its URL: browsers keep /assets/ in cache for 7 days,
+# so a new style.css must get a new URL or visitors keep the old design.
+CSS_VERSION = hashlib.sha256((ROOT / "assets" / "style.css").read_bytes()).hexdigest()[:10]
 
 
 # ---------------------------------------------------------------- helpers
@@ -69,7 +74,7 @@ def page(title, hero, body, depth=0, tab=None):
 <title>{e(title)} | {SITE_NAME}</title>
 <link rel="preload" href="{prefix}assets/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{prefix}assets/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{prefix}assets/style.css">
+<link rel="stylesheet" href="{prefix}assets/style.css?v={CSS_VERSION}">
 <link rel="icon" href="{prefix}assets/img/logo/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="{prefix}assets/img/logo/favicon@2x.png">
 </head>

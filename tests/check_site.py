@@ -21,7 +21,7 @@ for t in tiles:
             errors.append(f"{t['id']}: unknown related tile {r}")
 
 for page in DIST.rglob("*.html"):
-    for href in re.findall(r'(?:href|src)="([^"#]+)"', page.read_text(encoding="utf-8")):
+    for href in re.findall(r'(?:href|src)="([^"#?]+)', page.read_text(encoding="utf-8")):
         if href.startswith(("http://", "https://", "mailto:")):
             continue
         if not (page.parent / href).resolve().exists():

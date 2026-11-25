@@ -1,14 +1,16 @@
-# GreenFlag, site compagnon (V1)
+# GreenFlag, site compagnon (V2)
 
 Site statique en anglais, aligné sur le plateau de 30 cases : une page d'accueil avec le bouton "Start a game", un sommaire (contents.html), une page par case colorée (13), 5 pages "Go further", une page "How to play" et une page "About".
-Pas de base de données, pas de JavaScript, pas de dépendance externe (environ 400 Ko au total).
+Pas de base de données, pas de JavaScript, pas de dépendance externe (environ 1,3 Mo au total, surtout les images en double taille pour les écrans Retina).
 
 ## Structure
 
 ```
 content/tiles.json   <- tout le texte des cases (à modifier ici)
-assets/style.css     <- le style (variables de couleurs en haut du fichier, pour la future maquette)
-assets/flag.svg      <- logo / favicon
+assets/style.css     <- le style V2 (couleurs et polices de la maquette en haut du fichier)
+assets/img/          <- images de la maquette (hero, bento, How to play, oies, logo, motif)
+assets/icons/        <- icônes SVG (onglets, flèches, effets des cases), intégrées dans les pages
+assets/fonts/        <- Fredoka, Nunito, Kalam (hébergées sur le site, pas d'appel à Google Fonts)
 build.py             <- génère le site dans dist/
 dist/                <- le site prêt à mettre en ligne (généré, ne pas modifier à la main)
 ```
@@ -69,5 +71,4 @@ Revenir à crazydev : `cd /opt/english-game && docker compose down && cd /opt/cr
 ## À faire avant la version finale
 
 - Ajouter les sources de votre recherche "green IT et eco design".
-- Appliquer la maquette : commencer par les variables en haut de `assets/style.css`.
 

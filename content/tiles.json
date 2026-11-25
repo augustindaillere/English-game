@@ -2,6 +2,7 @@
   {
     "id": "reuse-recycle",
     "tile": 3,
+    "tile2": 12,
     "type": "good",
     "effect": "Go to tile 6",
     "title": "Reuse, recycle",
@@ -69,6 +70,7 @@
   {
     "id": "product-lifetime",
     "tile": 5,
+    "tile2": 18,
     "type": "good",
     "effect": "Double your move",
     "title": "Product lifetime",
@@ -141,6 +143,7 @@
   {
     "id": "wasted-energy",
     "tile": 9,
+    "tile2": 7,
     "type": "bad",
     "effect": "Miss 1 turn",
     "title": "Wasted energy",
@@ -181,6 +184,7 @@
   {
     "id": "cut-down",
     "tile": 11,
+    "tile2": 27,
     "type": "good",
     "effect": "Double your move",
     "title": "Cut down on",
@@ -221,6 +225,7 @@
   {
     "id": "sustainable-web-design",
     "tile": 13,
+    "tile2": 16,
     "type": "good",
     "effect": "1st turn: 6 = here",
     "title": "Sustainable web design",
@@ -320,6 +325,7 @@
   {
     "id": "digital-carbon-footprint",
     "tile": 15,
+    "tile2": 3,
     "type": "bad",
     "effect": "Back to tile 6",
     "title": "Digital carbon footprint",
@@ -394,6 +400,7 @@
   {
     "id": "green-coding",
     "tile": 17,
+    "tile2": 23,
     "type": "good",
     "effect": "Double your move",
     "title": "Green coding",
@@ -449,6 +456,7 @@
   {
     "id": "pue",
     "tile": 20,
+    "tile2": 25,
     "type": "bad",
     "effect": "Back to tile 14",
     "title": "PUE (Power Usage Effectiveness)",
@@ -518,6 +526,7 @@
   {
     "id": "virtualization",
     "tile": 22,
+    "tile2": 5,
     "type": "good",
     "effect": "Double your move",
     "title": "Virtualization",
@@ -566,6 +575,7 @@
   {
     "id": "moores-law",
     "tile": 25,
+    "tile2": 29,
     "type": "bad",
     "effect": "Stuck until a 6",
     "title": "Moore's law",
@@ -635,6 +645,7 @@
   {
     "id": "green-energy",
     "tile": 27,
+    "tile2": 1,
     "type": "good",
     "effect": "Double your move",
     "title": "Green energy",
@@ -695,6 +706,7 @@
   {
     "id": "greenhouse-gas-emissions",
     "tile": 28,
+    "tile2": 14,
     "type": "bad",
     "effect": "Back to start",
     "title": "Greenhouse gas emissions",
@@ -756,6 +768,7 @@
   {
     "id": "net-zero",
     "tile": 30,
+    "tile2": 30,
     "type": "finish",
     "effect": "Exact roll only",
     "title": "Net zero",
